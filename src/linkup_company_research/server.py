@@ -1,7 +1,26 @@
 """Linkup Company Research MCP Server.
 
 A comprehensive company research platform powered by Linkup's agentic search API.
-Provides 10 research tools with dual output format support (natural language or structured JSON).
+Provides 17 research tools with dual output format support (natural language or structured JSON).
+
+Tools:
+1. company_overview - Company identity, location, size, stage
+2. company_products - Products, services, pricing
+3. company_business_model - Revenue streams, unit economics, GTM
+4. company_target_market - ICP, segments, geographic markets
+5. company_financials - Revenue, profitability, key metrics
+6. company_funding - Funding rounds, valuation, investors
+7. company_leadership - CEO, C-suite, board, key hires/departures
+8. company_culture - Glassdoor, employer brand, work policy
+9. company_clients - Customers, case studies, traction
+10. company_partnerships - Strategic partners, integrations, ecosystem
+11. company_technology - Tech stack, patents, R&D, AI capabilities
+12. competitive_landscape - Competitors, positioning, market share
+13. company_market - Industry, TAM/SAM/SOM, trends, regulations
+14. company_news - Recent activity, launches, announcements
+15. company_strategy - Growth plans, M&A, IPO signals
+16. company_risks - Risk assessment across multiple dimensions
+17. company_esg - ESG initiatives, sustainability, reputation
 """
 
 import json
@@ -96,11 +115,8 @@ def _format_response(data: dict, output_format: OutputFormat) -> str:
         Formatted response string
     """
     if output_format == OutputFormat.STRUCTURED:
-        # For structured output, the response IS the structured data directly
-        # (not wrapped in a "structuredOutput" field)
         return json.dumps(data, indent=2)
     else:
-        # Format sourcedAnswer with sources
         result = data.get("answer", "No answer found.")
         sources = data.get("sources", [])
         if sources:
@@ -113,7 +129,7 @@ def _format_response(data: dict, output_format: OutputFormat) -> str:
 
 
 # =============================================================================
-# EXISTING TOOLS - ENHANCED
+# 1. COMPANY OVERVIEW
 # =============================================================================
 
 
@@ -148,52 +164,366 @@ async def company_overview(
     return _format_response(data, params.output_format)
 
 
-@mcp.tool()
-async def company_news(
-    company_name: str,
-    topic: str = "",
-    output_format: str = "answer",
-    from_date: str = "",
-    to_date: str = "",
-    include_domains: str = "",
-    exclude_domains: str = "",
-    max_results: int = 10,
-) -> str:
-    """Get the latest news and developments about a company.
+# =============================================================================
+# 2. PRODUCTS & SERVICES
+# =============================================================================
 
-    Searches news sources, press releases, and publications for recent
-    coverage of the company. Supports filtering by date range and topic.
+
+@mcp.tool()
+async def company_products(
+    company_name: str,
+    product_name: str = "",
+    output_format: str = "answer",
+    max_results: int = 15,
+) -> str:
+    """Get information about a company's products and services.
+
+    Researches the company's product pages, pricing, and documentation to provide
+    detailed information about their offerings, pricing models, and use cases.
 
     Args:
         company_name: The name of the company to research
-        topic: Optional topic filter (e.g., 'funding', 'product launch', 'earnings', 'partnerships')
+        product_name: Optional filter for a specific product
         output_format: "answer" for natural language with sources, "structured" for JSON
-        from_date: Start date for news (YYYY-MM-DD format)
-        to_date: End date for news (YYYY-MM-DD format)
-        include_domains: Comma-separated domains to include (e.g., "techcrunch.com,reuters.com")
-        exclude_domains: Comma-separated domains to exclude
-        max_results: Maximum number of news items (1-50)
+        max_results: Maximum number of sources to consider (1-50)
+    """
+    params = build_search_params(
+        output_format=output_format,
+        max_results=max_results,
+    )
+
+    prompt = get_prompt("company_products", company_name=company_name, product_name=product_name)
+    schema = get_schema("company_products") if params.output_format == OutputFormat.STRUCTURED else None
+
+    data = await _search(prompt, depth="standard", params=params, schema=schema)
+    return _format_response(data, params.output_format)
+
+
+# =============================================================================
+# 3. BUSINESS MODEL
+# =============================================================================
+
+
+@mcp.tool()
+async def company_business_model(
+    company_name: str,
+    output_format: str = "answer",
+    max_results: int = 12,
+) -> str:
+    """Get information about a company's business model.
+
+    Researches how the company makes money, their revenue streams, unit economics,
+    and go-to-market strategy.
+
+    Args:
+        company_name: The name of the company to research
+        output_format: "answer" for natural language with sources, "structured" for JSON
+        max_results: Maximum number of sources to consider (1-50)
+    """
+    params = build_search_params(
+        output_format=output_format,
+        max_results=max_results,
+    )
+
+    prompt = get_prompt("company_business_model", company_name=company_name)
+    schema = get_schema("company_business_model") if params.output_format == OutputFormat.STRUCTURED else None
+
+    data = await _search(prompt, depth="standard", params=params, schema=schema)
+    return _format_response(data, params.output_format)
+
+
+# =============================================================================
+# 4. TARGET MARKET
+# =============================================================================
+
+
+@mcp.tool()
+async def company_target_market(
+    company_name: str,
+    output_format: str = "answer",
+    max_results: int = 12,
+) -> str:
+    """Get information about a company's target market.
+
+    Researches the company's ideal customer profile, customer segments,
+    geographic markets, and vertical focus.
+
+    Args:
+        company_name: The name of the company to research
+        output_format: "answer" for natural language with sources, "structured" for JSON
+        max_results: Maximum number of sources to consider (1-50)
+    """
+    params = build_search_params(
+        output_format=output_format,
+        max_results=max_results,
+    )
+
+    prompt = get_prompt("company_target_market", company_name=company_name)
+    schema = get_schema("company_target_market") if params.output_format == OutputFormat.STRUCTURED else None
+
+    data = await _search(prompt, depth="standard", params=params, schema=schema)
+    return _format_response(data, params.output_format)
+
+
+# =============================================================================
+# 5. FINANCIALS
+# =============================================================================
+
+
+@mcp.tool()
+async def company_financials(
+    company_name: str,
+    output_format: str = "answer",
+    from_date: str = "",
+    to_date: str = "",
+    max_results: int = 15,
+) -> str:
+    """Get financial information about a company.
+
+    Researches revenue, profitability, key business metrics (ARR, MRR, GMV, NRR),
+    and financial health indicators.
+
+    Args:
+        company_name: The name of the company to research
+        output_format: "answer" for natural language with sources, "structured" for JSON
+        from_date: Start date for financial news (YYYY-MM-DD)
+        to_date: End date for financial news (YYYY-MM-DD)
+        max_results: Maximum sources to consider (1-50)
     """
     params = build_search_params(
         output_format=output_format,
         from_date=from_date,
         to_date=to_date,
-        include_domains=include_domains,
-        exclude_domains=exclude_domains,
         max_results=max_results,
     )
 
     prompt = get_prompt(
-        "company_news",
+        "company_financials",
         company_name=company_name,
-        topic=topic,
         from_date=from_date,
         to_date=to_date,
     )
-    schema = get_schema("company_news") if params.output_format == OutputFormat.STRUCTURED else None
+    schema = get_schema("company_financials") if params.output_format == OutputFormat.STRUCTURED else None
+
+    data = await _search(prompt, depth="deep", params=params, schema=schema)
+    return _format_response(data, params.output_format)
+
+
+# =============================================================================
+# 6. FUNDING & VALUATION
+# =============================================================================
+
+
+@mcp.tool()
+async def company_funding(
+    company_name: str,
+    output_format: str = "answer",
+    from_date: str = "",
+    to_date: str = "",
+    max_results: int = 15,
+) -> str:
+    """Get funding and valuation information about a company.
+
+    Researches funding history, funding rounds, valuation, and investors
+    through Crunchbase, PitchBook, press releases, and financial news.
+
+    Args:
+        company_name: The name of the company to research
+        output_format: "answer" for natural language with sources, "structured" for JSON
+        from_date: Start date for funding news (YYYY-MM-DD)
+        to_date: End date for funding news (YYYY-MM-DD)
+        max_results: Maximum sources to consider (1-50)
+    """
+    params = build_search_params(
+        output_format=output_format,
+        from_date=from_date,
+        to_date=to_date,
+        max_results=max_results,
+    )
+
+    prompt = get_prompt(
+        "company_funding",
+        company_name=company_name,
+        from_date=from_date,
+        to_date=to_date,
+    )
+    schema = get_schema("company_funding") if params.output_format == OutputFormat.STRUCTURED else None
+
+    data = await _search(prompt, depth="deep", params=params, schema=schema)
+    return _format_response(data, params.output_format)
+
+
+# =============================================================================
+# 7. LEADERSHIP & PEOPLE
+# =============================================================================
+
+
+@mcp.tool()
+async def company_leadership(
+    company_name: str,
+    output_format: str = "answer",
+    include_images: bool = False,
+    max_results: int = 12,
+) -> str:
+    """Get information about a company's leadership team.
+
+    Identifies CEO, C-suite executives, founders, board members,
+    key hires, and notable departures.
+
+    Args:
+        company_name: The name of the company to research
+        output_format: "answer" for natural language with sources, "structured" for JSON
+        include_images: Include executive headshots
+        max_results: Maximum sources to consider (1-50)
+    """
+    params = build_search_params(
+        output_format=output_format,
+        include_images=include_images,
+        max_results=max_results,
+    )
+
+    prompt = get_prompt("company_leadership", company_name=company_name)
+    schema = get_schema("company_leadership") if params.output_format == OutputFormat.STRUCTURED else None
 
     data = await _search(prompt, depth="standard", params=params, schema=schema)
     return _format_response(data, params.output_format)
+
+
+# =============================================================================
+# 8. EMPLOYER & CULTURE
+# =============================================================================
+
+
+@mcp.tool()
+async def company_culture(
+    company_name: str,
+    output_format: str = "answer",
+    max_results: int = 15,
+) -> str:
+    """Get information about a company's culture and employer reputation.
+
+    Researches Glassdoor ratings, employer awards, culture attributes,
+    work policy (remote/hybrid/in-office), and benefits.
+
+    Args:
+        company_name: The name of the company to research
+        output_format: "answer" for natural language with sources, "structured" for JSON
+        max_results: Maximum sources to consider (1-50)
+    """
+    params = build_search_params(
+        output_format=output_format,
+        max_results=max_results,
+    )
+
+    prompt = get_prompt("company_culture", company_name=company_name)
+    schema = get_schema("company_culture") if params.output_format == OutputFormat.STRUCTURED else None
+
+    data = await _search(prompt, depth="standard", params=params, schema=schema)
+    return _format_response(data, params.output_format)
+
+
+# =============================================================================
+# 9. CUSTOMERS & TRACTION
+# =============================================================================
+
+
+@mcp.tool()
+async def company_clients(
+    company_name: str,
+    output_format: str = "answer",
+    max_results: int = 15,
+) -> str:
+    """Find known clients, customers, and case studies for a company.
+
+    Researches customer pages, case studies, press releases, and review sites
+    to identify verified customers and their use cases.
+
+    Args:
+        company_name: The name of the company to research
+        output_format: "answer" for natural language with sources, "structured" for JSON
+        max_results: Maximum sources to consider (1-50)
+    """
+    params = build_search_params(
+        output_format=output_format,
+        max_results=max_results,
+    )
+
+    prompt = get_prompt("company_clients", company_name=company_name)
+    schema = get_schema("company_clients") if params.output_format == OutputFormat.STRUCTURED else None
+
+    data = await _search(prompt, depth="deep", params=params, schema=schema)
+    return _format_response(data, params.output_format)
+
+
+# =============================================================================
+# 10. PARTNERSHIPS & ECOSYSTEM
+# =============================================================================
+
+
+@mcp.tool()
+async def company_partnerships(
+    company_name: str,
+    output_format: str = "answer",
+    max_results: int = 15,
+) -> str:
+    """Find partnerships, integrations, and strategic alliances for a company.
+
+    Researches partner pages, integration marketplaces, press releases, and
+    partner programs to map the company's ecosystem.
+
+    Args:
+        company_name: The name of the company to research
+        output_format: "answer" for natural language with sources, "structured" for JSON
+        max_results: Maximum sources to consider (1-50)
+    """
+    params = build_search_params(
+        output_format=output_format,
+        max_results=max_results,
+    )
+
+    prompt = get_prompt("company_partnerships", company_name=company_name)
+    schema = get_schema("company_partnerships") if params.output_format == OutputFormat.STRUCTURED else None
+
+    data = await _search(prompt, depth="deep", params=params, schema=schema)
+    return _format_response(data, params.output_format)
+
+
+# =============================================================================
+# 11. TECHNOLOGY & IP
+# =============================================================================
+
+
+@mcp.tool()
+async def company_technology(
+    company_name: str,
+    output_format: str = "answer",
+    max_results: int = 15,
+) -> str:
+    """Research a company's technology stack, patents, and technical approach.
+
+    Analyzes engineering blogs, job postings, tech detection tools, patents,
+    and open source contributions to understand technical capabilities.
+
+    Args:
+        company_name: The name of the company to research
+        output_format: "answer" for natural language with sources, "structured" for JSON
+        max_results: Maximum sources to consider (1-50)
+    """
+    params = build_search_params(
+        output_format=output_format,
+        max_results=max_results,
+    )
+
+    prompt = get_prompt("company_technology", company_name=company_name)
+    schema = get_schema("company_technology") if params.output_format == OutputFormat.STRUCTURED else None
+
+    data = await _search(prompt, depth="deep", params=params, schema=schema)
+    return _format_response(data, params.output_format)
+
+
+# =============================================================================
+# 12. COMPETITIVE LANDSCAPE
+# =============================================================================
 
 
 @mcp.tool()
@@ -227,91 +557,107 @@ async def competitive_landscape(
     return _format_response(data, params.output_format)
 
 
+# =============================================================================
+# 13. MARKET & INDUSTRY
+# =============================================================================
+
+
 @mcp.tool()
-async def company_financials(
+async def company_market(
     company_name: str,
     output_format: str = "answer",
-    from_date: str = "",
-    to_date: str = "",
     max_results: int = 15,
 ) -> str:
-    """Get financial information about a company.
+    """Get information about the market and industry context for a company.
 
-    Researches funding history, valuation, revenue, investors, and financial
-    health through Crunchbase, press releases, and financial news.
+    Researches industry classification, market size (TAM/SAM/SOM), industry growth rate,
+    market trends, and regulatory environment.
 
     Args:
         company_name: The name of the company to research
         output_format: "answer" for natural language with sources, "structured" for JSON
-        from_date: Start date for financial news (YYYY-MM-DD)
-        to_date: End date for financial news (YYYY-MM-DD)
         max_results: Maximum sources to consider (1-50)
+    """
+    params = build_search_params(
+        output_format=output_format,
+        max_results=max_results,
+    )
+
+    prompt = get_prompt("company_market", company_name=company_name)
+    schema = get_schema("company_market") if params.output_format == OutputFormat.STRUCTURED else None
+
+    data = await _search(prompt, depth="deep", params=params, schema=schema)
+    return _format_response(data, params.output_format)
+
+
+# =============================================================================
+# 14. RECENT ACTIVITY (News)
+# =============================================================================
+
+
+@mcp.tool()
+async def company_news(
+    company_name: str,
+    topic: str = "",
+    output_format: str = "answer",
+    from_date: str = "",
+    to_date: str = "",
+    include_domains: str = "",
+    exclude_domains: str = "",
+    max_results: int = 15,
+) -> str:
+    """Get the latest news and developments about a company.
+
+    Searches news sources, press releases, and publications for recent
+    coverage including product launches, funding, partnerships, and M&A activity.
+
+    Args:
+        company_name: The name of the company to research
+        topic: Optional topic filter (e.g., 'funding', 'product launch', 'partnerships')
+        output_format: "answer" for natural language with sources, "structured" for JSON
+        from_date: Start date for news (YYYY-MM-DD format)
+        to_date: End date for news (YYYY-MM-DD format)
+        include_domains: Comma-separated domains to include (e.g., "techcrunch.com,reuters.com")
+        exclude_domains: Comma-separated domains to exclude
+        max_results: Maximum number of news items (1-50)
     """
     params = build_search_params(
         output_format=output_format,
         from_date=from_date,
         to_date=to_date,
+        include_domains=include_domains,
+        exclude_domains=exclude_domains,
         max_results=max_results,
     )
 
     prompt = get_prompt(
-        "company_financials",
+        "company_news",
         company_name=company_name,
+        topic=topic,
         from_date=from_date,
         to_date=to_date,
     )
-    schema = get_schema("company_financials") if params.output_format == OutputFormat.STRUCTURED else None
-
-    data = await _search(prompt, depth="deep", params=params, schema=schema)
-    return _format_response(data, params.output_format)
-
-
-@mcp.tool()
-async def company_leadership(
-    company_name: str,
-    output_format: str = "answer",
-    include_images: bool = False,
-    max_results: int = 10,
-) -> str:
-    """Get information about a company's leadership team.
-
-    Identifies executives, founders, board members, and advisors through
-    company pages, LinkedIn, and press releases.
-
-    Args:
-        company_name: The name of the company to research
-        output_format: "answer" for natural language with sources, "structured" for JSON
-        include_images: Include executive headshots
-        max_results: Maximum sources to consider (1-50)
-    """
-    params = build_search_params(
-        output_format=output_format,
-        include_images=include_images,
-        max_results=max_results,
-    )
-
-    prompt = get_prompt("company_leadership", company_name=company_name)
-    schema = get_schema("company_leadership") if params.output_format == OutputFormat.STRUCTURED else None
+    schema = get_schema("company_news") if params.output_format == OutputFormat.STRUCTURED else None
 
     data = await _search(prompt, depth="standard", params=params, schema=schema)
     return _format_response(data, params.output_format)
 
 
 # =============================================================================
-# NEW TOOLS
+# 15. STRATEGIC OUTLOOK
 # =============================================================================
 
 
 @mcp.tool()
-async def company_clients(
+async def company_strategy(
     company_name: str,
     output_format: str = "answer",
     max_results: int = 15,
 ) -> str:
-    """Find known clients, customers, and case studies for a company.
+    """Get information about a company's strategic direction.
 
-    Researches customer pages, case studies, press releases, and review sites
-    to identify verified customers and their use cases.
+    Researches growth strategy, expansion plans (geographic, product, vertical),
+    M&A history, acquisition rumors, and IPO signals.
 
     Args:
         company_name: The name of the company to research
@@ -323,23 +669,28 @@ async def company_clients(
         max_results=max_results,
     )
 
-    prompt = get_prompt("company_clients", company_name=company_name)
-    schema = get_schema("company_clients") if params.output_format == OutputFormat.STRUCTURED else None
+    prompt = get_prompt("company_strategy", company_name=company_name)
+    schema = get_schema("company_strategy") if params.output_format == OutputFormat.STRUCTURED else None
 
     data = await _search(prompt, depth="deep", params=params, schema=schema)
     return _format_response(data, params.output_format)
 
 
+# =============================================================================
+# 16. RISK FACTORS
+# =============================================================================
+
+
 @mcp.tool()
-async def company_technology(
+async def company_risks(
     company_name: str,
     output_format: str = "answer",
     max_results: int = 15,
 ) -> str:
-    """Research a company's technology stack, patents, and technical approach.
+    """Assess risk factors for a company.
 
-    Analyzes engineering blogs, job postings, tech detection tools, patents,
-    and open source contributions to understand technical capabilities.
+    Researches competitive risks, regulatory risks, legal exposure, key person
+    dependency, customer concentration, technology risks, and market risks.
 
     Args:
         company_name: The name of the company to research
@@ -351,53 +702,28 @@ async def company_technology(
         max_results=max_results,
     )
 
-    prompt = get_prompt("company_technology", company_name=company_name)
-    schema = get_schema("company_technology") if params.output_format == OutputFormat.STRUCTURED else None
+    prompt = get_prompt("company_risks", company_name=company_name)
+    schema = get_schema("company_risks") if params.output_format == OutputFormat.STRUCTURED else None
 
     data = await _search(prompt, depth="deep", params=params, schema=schema)
     return _format_response(data, params.output_format)
 
 
-@mcp.tool()
-async def company_hiring(
-    company_name: str,
-    department: str = "",
-    output_format: str = "answer",
-    max_results: int = 15,
-) -> str:
-    """Get information about a company's hiring activity, job openings, and growth.
-
-    Researches careers pages, job boards, LinkedIn, and Glassdoor to understand
-    hiring patterns and employee growth signals.
-
-    Args:
-        company_name: The name of the company to research
-        department: Optional department filter (e.g., "engineering", "sales", "marketing")
-        output_format: "answer" for natural language with sources, "structured" for JSON
-        max_results: Maximum sources to consider (1-50)
-    """
-    params = build_search_params(
-        output_format=output_format,
-        max_results=max_results,
-    )
-
-    prompt = get_prompt("company_hiring", company_name=company_name, department=department)
-    schema = get_schema("company_hiring") if params.output_format == OutputFormat.STRUCTURED else None
-
-    data = await _search(prompt, depth="standard", params=params, schema=schema)
-    return _format_response(data, params.output_format)
+# =============================================================================
+# 17. ESG & REPUTATION
+# =============================================================================
 
 
 @mcp.tool()
-async def company_partnerships(
+async def company_esg(
     company_name: str,
     output_format: str = "answer",
-    max_results: int = 15,
+    max_results: int = 12,
 ) -> str:
-    """Find partnerships, integrations, and strategic alliances for a company.
+    """Get ESG and reputation information about a company.
 
-    Researches partner pages, integration marketplaces, press releases, and
-    partner programs to map the company's ecosystem.
+    Researches ESG initiatives, sustainability commitments, environmental programs,
+    social initiatives, governance, controversies, and brand perception.
 
     Args:
         company_name: The name of the company to research
@@ -409,39 +735,8 @@ async def company_partnerships(
         max_results=max_results,
     )
 
-    prompt = get_prompt("company_partnerships", company_name=company_name)
-    schema = get_schema("company_partnerships") if params.output_format == OutputFormat.STRUCTURED else None
-
-    data = await _search(prompt, depth="deep", params=params, schema=schema)
-    return _format_response(data, params.output_format)
-
-
-@mcp.tool()
-async def company_social_presence(
-    company_name: str,
-    output_format: str = "answer",
-    include_images: bool = False,
-    max_results: int = 15,
-) -> str:
-    """Analyze a company's social media presence and content strategy.
-
-    Researches social profiles, content channels, community platforms, and
-    executive thought leadership to understand their digital presence.
-
-    Args:
-        company_name: The name of the company to research
-        output_format: "answer" for natural language with sources, "structured" for JSON
-        include_images: Include social media profile images
-        max_results: Maximum sources to consider (1-50)
-    """
-    params = build_search_params(
-        output_format=output_format,
-        include_images=include_images,
-        max_results=max_results,
-    )
-
-    prompt = get_prompt("company_social_presence", company_name=company_name)
-    schema = get_schema("company_social_presence") if params.output_format == OutputFormat.STRUCTURED else None
+    prompt = get_prompt("company_esg", company_name=company_name)
+    schema = get_schema("company_esg") if params.output_format == OutputFormat.STRUCTURED else None
 
     data = await _search(prompt, depth="standard", params=params, schema=schema)
     return _format_response(data, params.output_format)

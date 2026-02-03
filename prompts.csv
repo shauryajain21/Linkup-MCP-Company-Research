@@ -1,26 +1,11 @@
-"""Optimized prompt templates for Linkup Company Research MCP.
-
-Supports 17 comprehensive company profile tools.
-
-These prompts follow Linkup's best practices:
-- Sequential search patterns (search -> scrape)
-- Explicit scraping instructions
-- Multi-step research flows
-- Specific data points to extract
-"""
-
-
-# =============================================================================
-# 1. COMPANY OVERVIEW
-# =============================================================================
-
-COMPANY_OVERVIEW_PROMPT = """You are an expert business analyst researching {company_name}.
+tool_name,category,depth,description,prompt
+company_overview,Company Overview,deep,"Company identity, location, size, stage","You are an expert business analyst researching {company_name}.
 
 Execute the following research steps:
 
 1. First, find {company_name}'s official website URL
 2. Scrape their homepage to understand their core value proposition
-3. Find and scrape their "About Us" or "About" page for company background, mission, and history
+3. Find and scrape their ""About Us"" or ""About"" page for company background, mission, and history
 4. Find their LinkedIn company page and extract company details (employee count, headquarters, industry)
 5. Search for founding story, origin, and key milestones
 
@@ -40,7 +25,7 @@ Locations:
 
 Size & Stage:
 - Employee headcount (current, with source)
-- Employee count range (e.g., "100-500")
+- Employee count range (e.g., ""100-500"")
 - Employee growth trend (growing/stable/declining)
 - Company stage (seed/early/growth/mature/public/turnaround)
 
@@ -53,16 +38,8 @@ Social:
 - Twitter/X URL
 
 Do not include products, services, or business model details - those belong in separate tools.
-Return only factual data found - do not infer or estimate values."""
-
-
-# =============================================================================
-# 2. PRODUCTS & SERVICES
-# =============================================================================
-
-COMPANY_PRODUCTS_PROMPT = """You are an expert product analyst researching {company_name}'s products and services.
-
-{product_filter}
+Return only factual data found - do not infer or estimate values."
+company_products,Products & Services,standard,"Products, services, pricing","You are an expert product analyst researching {company_name}'s products and services.
 
 Execute the following research steps:
 
@@ -97,17 +74,8 @@ Pricing:
 - Free trial availability
 - Pricing page URL
 
-Focus on factual product information. Do not speculate about unreleased products."""
-
-
-COMPANY_PRODUCTS_FILTER = """Focus specifically on the product: {product_name}"""
-
-
-# =============================================================================
-# 3. BUSINESS MODEL
-# =============================================================================
-
-COMPANY_BUSINESS_MODEL_PROMPT = """You are an expert business analyst researching {company_name}'s business model.
+Focus on factual product information. Do not speculate about unreleased products."
+company_business_model,Business Model,standard,"Revenue streams, unit economics, GTM","You are an expert business analyst researching {company_name}'s business model.
 
 Execute the following research steps:
 
@@ -145,18 +113,12 @@ Go-to-Market:
 - GTM approach (sales-led/product-led/hybrid/channel/community-led)
 - Sales model (self-serve/inside-sales/field-sales/partner/hybrid)
 
-Note sources for any financial metrics. Do not estimate values without stating it's an estimate."""
-
-
-# =============================================================================
-# 4. TARGET MARKET
-# =============================================================================
-
-COMPANY_TARGET_MARKET_PROMPT = """You are an expert market analyst researching {company_name}'s target market.
+Note sources for any financial metrics. Do not estimate values without stating it's an estimate."
+company_target_market,Target Market,standard,"ICP, segments, geographic markets","You are an expert market analyst researching {company_name}'s target market.
 
 Execute the following research steps:
 
-1. Analyze {company_name}'s website messaging and "Who We Serve" content
+1. Analyze {company_name}'s website messaging and ""Who We Serve"" content
 2. Look at their case studies to understand customer types
 3. Search for investor materials describing their ICP
 4. Find job postings mentioning target customer segments
@@ -190,16 +152,8 @@ Use Case Verticals:
 Market Approach:
 - Horizontal (broad) vs Vertical (specialized) vs Hybrid
 
-Base this on factual evidence from their marketing and customer materials."""
-
-
-# =============================================================================
-# 5. FINANCIALS (Revenue & Metrics)
-# =============================================================================
-
-COMPANY_FINANCIALS_PROMPT = """You are an expert financial analyst researching {company_name}'s financial performance.
-
-{date_filter}
+Base this on factual evidence from their marketing and customer materials."
+company_financials,Financials,deep,"Revenue, profitability, key metrics","You are an expert financial analyst researching {company_name}'s financial performance.
 
 Execute the following research steps:
 
@@ -243,16 +197,8 @@ Financial Health:
 - Financial health signals
 
 Note the date and source for each financial data point. Do not estimate values.
-Do not include funding or valuation data - that belongs in company_funding."""
-
-
-# =============================================================================
-# 6. FUNDING & VALUATION
-# =============================================================================
-
-COMPANY_FUNDING_PROMPT = """You are an expert financial analyst researching {company_name}'s funding and valuation.
-
-{date_filter}
+Do not include funding or valuation data - that belongs in company_funding."
+company_funding,Funding & Valuation,deep,"Funding rounds, valuation, investors","You are an expert financial analyst researching {company_name}'s funding and valuation.
 
 Execute the following research steps:
 
@@ -298,18 +244,12 @@ Notable Shareholders:
 Debt Financing:
 - Any debt financing details
 
-Note the source for each data point. Do not estimate values."""
-
-
-# =============================================================================
-# 7. LEADERSHIP & PEOPLE
-# =============================================================================
-
-COMPANY_LEADERSHIP_PROMPT = """You are an expert executive researcher investigating {company_name}'s leadership team.
+Note the source for each data point. Do not estimate values."
+company_leadership,Leadership & People,standard,"CEO, C-suite, board, key hires/departures","You are an expert executive researcher investigating {company_name}'s leadership team.
 
 Execute the following research steps:
 
-1. Find and scrape {company_name}'s "Team", "About Us", "Leadership" page
+1. Find and scrape {company_name}'s ""Team"", ""About Us"", ""Leadership"" page
 2. Search LinkedIn for executives with C-level and VP titles
 3. Look for recent executive announcements and leadership changes
 4. Find board member information from press releases or SEC filings
@@ -342,7 +282,7 @@ For each founder:
 Board Members:
 For each board member:
 - Name
-- Affiliation (e.g., "Partner at Sequoia")
+- Affiliation (e.g., ""Partner at Sequoia"")
 - Board role (chair/member/observer)
 
 Key Hires (last 12-24 months):
@@ -362,19 +302,13 @@ For each significant departure:
 Founder Status:
 - Is the company founder-led, professional management, or in transition?
 
-Focus on verified information from official sources."""
-
-
-# =============================================================================
-# 8. EMPLOYER & CULTURE
-# =============================================================================
-
-COMPANY_CULTURE_PROMPT = """You are an expert employer brand analyst researching {company_name}'s culture and employer reputation.
+Focus on verified information from official sources."
+company_culture,Employer & Culture,standard,"Glassdoor, employer brand, work policy","You are an expert employer brand analyst researching {company_name}'s culture and employer reputation.
 
 Execute the following research steps:
 
 1. Find {company_name}'s Glassdoor page and extract ratings and reviews
-2. Look for "Best Places to Work" awards and employer recognition
+2. Look for ""Best Places to Work"" awards and employer recognition
 3. Find their careers page and culture content
 4. Search for remote work policy announcements
 5. Look for DEI initiatives and benefits information
@@ -390,7 +324,7 @@ Glassdoor:
 - Common cons (themes from reviews)
 
 Employer Reputation:
-- Awards (e.g., "Best Places to Work", "Top Startup", etc.)
+- Awards (e.g., ""Best Places to Work"", ""Top Startup"", etc.)
 - Employer brand score (if available)
 
 Culture Attributes:
@@ -411,20 +345,14 @@ LinkedIn Insights:
 - Employee count
 - Median tenure
 
-Focus on factual information from verified sources."""
-
-
-# =============================================================================
-# 9. CUSTOMERS & TRACTION
-# =============================================================================
-
-COMPANY_CLIENTS_PROMPT = """You are an expert B2B researcher investigating {company_name}'s customers and traction.
+Focus on factual information from verified sources."
+company_clients,Customers & Traction,deep,"Customers, case studies, traction","You are an expert B2B researcher investigating {company_name}'s customers and traction.
 
 Execute the following research steps:
 
-1. Find and scrape {company_name}'s "Customers", "Case Studies", "Success Stories" page
+1. Find and scrape {company_name}'s ""Customers"", ""Case Studies"", ""Success Stories"" page
 2. Look for customer logos on their homepage
-3. Search for "{company_name} customer" and "{company_name} case study"
+3. Search for ""{company_name} customer"" and ""{company_name} case study""
 4. Find press releases announcing customer wins
 5. Check review sites like G2, Capterra, TrustRadius for customer information
 
@@ -469,19 +397,13 @@ Logo Wall:
 NPS Score:
 - Net Promoter Score (if disclosed)
 
-Distinguish between confirmed customers (case studies, press) and logo customers (website display)."""
-
-
-# =============================================================================
-# 10. PARTNERSHIPS & ECOSYSTEM
-# =============================================================================
-
-COMPANY_PARTNERSHIPS_PROMPT = """You are an expert business development analyst researching {company_name}'s partnerships and ecosystem.
+Distinguish between confirmed customers (case studies, press) and logo customers (website display)."
+company_partnerships,Partnerships & Ecosystem,deep,"Partners, integrations, ecosystem","You are an expert business development analyst researching {company_name}'s partnerships and ecosystem.
 
 Execute the following research steps:
 
-1. Find and scrape {company_name}'s "Partners", "Integrations", "Ecosystem" page
-2. Search for "{company_name} partnership" and "{company_name} integration"
+1. Find and scrape {company_name}'s ""Partners"", ""Integrations"", ""Ecosystem"" page
+2. Search for ""{company_name} partnership"" and ""{company_name} integration""
 3. Look for partnership announcements in press releases
 4. Check for partner program details
 5. Find technical integrations and marketplace listings
@@ -521,14 +443,8 @@ Partner Program:
 - Partner tiers
 - Program URL
 
-Focus on verified partnerships from official announcements."""
-
-
-# =============================================================================
-# 11. TECHNOLOGY & IP
-# =============================================================================
-
-COMPANY_TECHNOLOGY_PROMPT = """You are an expert technology analyst researching {company_name}'s technical capabilities.
+Focus on verified partnerships from official announcements."
+company_technology,Technology & IP,deep,"Tech stack, patents, R&D, AI capabilities","You are an expert technology analyst researching {company_name}'s technical capabilities.
 
 Execute the following research steps:
 
@@ -583,22 +499,16 @@ Certifications:
 Technical Differentiators:
 - What makes their technology unique?
 
-Focus on verified technical information."""
-
-
-# =============================================================================
-# 12. COMPETITIVE LANDSCAPE
-# =============================================================================
-
-COMPETITIVE_LANDSCAPE_PROMPT = """You are an expert competitive intelligence analyst researching {company_name}.
+Focus on verified technical information."
+competitive_landscape,Competitive Landscape,deep,"Competitors, positioning, market share","You are an expert competitive intelligence analyst researching {company_name}.
 
 Execute the following research steps:
 
 1. Identify {company_name}'s primary industry and market category
-2. Search for "{company_name} competitors" and "{company_name} alternatives"
+2. Search for ""{company_name} competitors"" and ""{company_name} alternatives""
 3. Look for industry analyst reports mentioning {company_name}
 4. Check software review sites (G2, Capterra) for competitive comparisons
-5. Search for comparison articles: "{company_name} vs [competitor]"
+5. Search for comparison articles: ""{company_name} vs [competitor]""
 
 Provide comprehensive competitive analysis:
 
@@ -632,14 +542,8 @@ Market Share:
 Market Position:
 - Leader/challenger/follower/niche/emerging
 
-Focus on factual competitive intelligence with sources."""
-
-
-# =============================================================================
-# 13. MARKET & INDUSTRY
-# =============================================================================
-
-COMPANY_MARKET_PROMPT = """You are an expert market analyst researching the industry context for {company_name}.
+Focus on factual competitive intelligence with sources."
+company_market,Market & Industry,deep,"Industry, TAM/SAM/SOM, trends, regulations","You are an expert market analyst researching the industry context for {company_name}.
 
 Execute the following research steps:
 
@@ -686,17 +590,8 @@ Industry Dynamics:
 - Market concentration (fragmented/consolidated)
 - Barriers to entry
 
-Cite sources for market size and growth data."""
-
-
-# =============================================================================
-# 14. RECENT ACTIVITY (News)
-# =============================================================================
-
-COMPANY_NEWS_PROMPT = """You are an expert business news analyst researching {company_name}'s recent activity.
-
-{date_filter}
-{topic_filter}
+Cite sources for market size and growth data."
+company_news,Recent Activity,standard,"News, launches, announcements","You are an expert business news analyst researching {company_name}'s recent activity.
 
 Execute the following research steps:
 
@@ -745,18 +640,8 @@ M&A Activity:
 Press Highlights:
 - Notable press coverage, awards, recognition
 
-Order results by date, most recent first."""
-
-
-COMPANY_NEWS_DATE_FILTER = """Search for news from {from_date} to {to_date}."""
-COMPANY_NEWS_TOPIC_FILTER = """Focus specifically on news about: {topic}"""
-
-
-# =============================================================================
-# 15. STRATEGIC OUTLOOK
-# =============================================================================
-
-COMPANY_STRATEGY_PROMPT = """You are an expert strategy analyst researching {company_name}'s strategic direction.
+Order results by date, most recent first."
+company_strategy,Strategic Outlook,deep,"Growth plans, M&A, IPO signals","You are an expert strategy analyst researching {company_name}'s strategic direction.
 
 Execute the following research steps:
 
@@ -796,14 +681,8 @@ IPO Signals:
 Strategic Priorities:
 - Key strategic priorities
 
-Base this on factual statements from company leadership and official announcements."""
-
-
-# =============================================================================
-# 16. RISK FACTORS
-# =============================================================================
-
-COMPANY_RISKS_PROMPT = """You are an expert risk analyst assessing {company_name}'s risk factors.
+Base this on factual statements from company leadership and official announcements."
+company_risks,Risk Factors,deep,"Competitive, regulatory, legal risks","You are an expert risk analyst assessing {company_name}'s risk factors.
 
 Execute the following research steps:
 
@@ -858,14 +737,8 @@ Financial Risks:
 Overall Risk Assessment:
 - Overall risk level (low/medium/high)
 
-Focus on factual risk factors, not speculation."""
-
-
-# =============================================================================
-# 17. ESG & REPUTATION
-# =============================================================================
-
-COMPANY_ESG_PROMPT = """You are an expert ESG analyst researching {company_name}'s sustainability and reputation.
+Focus on factual risk factors, not speculation."
+company_esg,ESG & Reputation,standard,"ESG initiatives, sustainability, reputation","You are an expert ESG analyst researching {company_name}'s sustainability and reputation.
 
 Execute the following research steps:
 
@@ -920,60 +793,4 @@ ESG Rating:
 - Source
 - Date
 
-Focus on factual ESG information from official sources and news."""
-
-
-# =============================================================================
-# HELPER FUNCTIONS
-# =============================================================================
-
-def get_prompt(tool_name: str, **kwargs) -> str:
-    """Get formatted prompt for a tool with variable substitution."""
-    prompts = {
-        "company_overview": COMPANY_OVERVIEW_PROMPT,
-        "company_products": COMPANY_PRODUCTS_PROMPT,
-        "company_business_model": COMPANY_BUSINESS_MODEL_PROMPT,
-        "company_target_market": COMPANY_TARGET_MARKET_PROMPT,
-        "company_financials": COMPANY_FINANCIALS_PROMPT,
-        "company_funding": COMPANY_FUNDING_PROMPT,
-        "company_leadership": COMPANY_LEADERSHIP_PROMPT,
-        "company_culture": COMPANY_CULTURE_PROMPT,
-        "company_clients": COMPANY_CLIENTS_PROMPT,
-        "company_partnerships": COMPANY_PARTNERSHIPS_PROMPT,
-        "company_technology": COMPANY_TECHNOLOGY_PROMPT,
-        "competitive_landscape": COMPETITIVE_LANDSCAPE_PROMPT,
-        "company_market": COMPANY_MARKET_PROMPT,
-        "company_news": COMPANY_NEWS_PROMPT,
-        "company_strategy": COMPANY_STRATEGY_PROMPT,
-        "company_risks": COMPANY_RISKS_PROMPT,
-        "company_esg": COMPANY_ESG_PROMPT,
-    }
-
-    prompt_template = prompts.get(tool_name)
-    if not prompt_template:
-        raise ValueError(f"No prompt found for tool: {tool_name}")
-
-    # Handle product filter
-    if tool_name == "company_products":
-        product_filter = ""
-        if kwargs.get("product_name"):
-            product_filter = COMPANY_PRODUCTS_FILTER.format(product_name=kwargs["product_name"])
-        kwargs["product_filter"] = product_filter
-
-    # Handle date filter for news, financials, funding
-    if tool_name in ["company_news", "company_financials", "company_funding"]:
-        date_filter = ""
-        if kwargs.get("from_date") or kwargs.get("to_date"):
-            from_date = kwargs.get("from_date", "the beginning")
-            to_date = kwargs.get("to_date", "now")
-            date_filter = COMPANY_NEWS_DATE_FILTER.format(from_date=from_date, to_date=to_date)
-        kwargs["date_filter"] = date_filter
-
-    # Handle topic filter for news
-    if tool_name == "company_news":
-        topic_filter = ""
-        if kwargs.get("topic"):
-            topic_filter = COMPANY_NEWS_TOPIC_FILTER.format(topic=kwargs["topic"])
-        kwargs["topic_filter"] = topic_filter
-
-    return prompt_template.format(**kwargs)
+Focus on factual ESG information from official sources and news."

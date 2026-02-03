@@ -1,0 +1,7 @@
+# Core MCP dependencies
+mcp>=1.0.0
+httpx>=0.27.0
+
+# Remote server dependencies (SSE transport)
+starlette>=0.36.0
+uvicorn>=0.27.0

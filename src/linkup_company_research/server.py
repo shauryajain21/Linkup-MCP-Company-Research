@@ -29,12 +29,21 @@ from typing import Literal, Optional
 
 import httpx
 from mcp.server.fastmcp import FastMCP
+from mcp.types import Icon
 
 from .prompts import get_prompt
 from .schemas import get_schema
 from .types import OutputFormat, SearchParams, build_search_params
 
-mcp = FastMCP("linkup-company-research")
+mcp = FastMCP(
+    "linkup-company-research",
+    icons=[
+        Icon(
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRgl2U8xbVLiYEE_sQIw-ELC8JPtJYO5Jb5ow&s",
+            mimeType="image/png",
+        )
+    ],
+)
 
 LINKUP_API_URL = "https://api.linkup.so/v1/search"
 

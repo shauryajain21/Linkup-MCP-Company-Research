@@ -6,6 +6,8 @@
   "deploy": {
     "startCommand": "python -m linkup_company_research.remote",
     "healthcheckPath": "/health",
-    "healthcheckTimeout": 30
+    "healthcheckTimeout": 120,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
   }
 }

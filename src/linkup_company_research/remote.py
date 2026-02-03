@@ -1,14 +1,16 @@
 """Remote MCP Server with SSE Transport.
 
 This module provides an HTTP server that exposes the MCP tools via Server-Sent Events (SSE).
-Users pass their Linkup API key in the URL: /sse?apiKey=lk-xxxxx
+Users can optionally pass their Linkup API key in the URL: /sse?apiKey=lk-xxxxx
+If no key is provided, a fallback key is used with rate limiting.
 
 Deploy to Railway, Render, or any platform that supports Python web servers.
 """
 
 import os
+import time
 import logging
-from contextlib import asynccontextmanager
+from collections import defaultdict
 
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, HTMLResponse
@@ -21,36 +23,121 @@ from .server import mcp
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+
+# Fallback API key (set via environment variable on Railway)
+FALLBACK_API_KEY = os.environ.get("LINKUP_API_KEY", "")
+
+# Rate limiting for free tier (users without their own API key)
+RATE_LIMIT_QPS = 2  # Queries per second
+RATE_LIMIT_DAILY = 50  # Requests per day per IP
+
+# In-memory rate limiting (use Redis for production scale)
+rate_limit_qps: dict[str, list[float]] = defaultdict(list)
+rate_limit_daily: dict[str, int] = defaultdict(int)
+rate_limit_daily_reset: float = time.time()
+
+
+# =============================================================================
+# HELPERS
+# =============================================================================
+
+
+def get_client_ip(request) -> str:
+    """Extract client IP from request headers (handles proxies)."""
+    # Check common proxy headers
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+
+    real_ip = request.headers.get("x-real-ip")
+    if real_ip:
+        return real_ip
+
+    cf_ip = request.headers.get("cf-connecting-ip")
+    if cf_ip:
+        return cf_ip
+
+    return request.client.host if request.client else "unknown"
+
 
 def extract_api_key(request) -> str | None:
     """Extract Linkup API key from URL query parameters."""
     return request.query_params.get("apiKey") or request.query_params.get("api_key")
 
 
+def check_rate_limit(client_ip: str) -> tuple[bool, str]:
+    """Check if client is within rate limits. Returns (allowed, error_message)."""
+    global rate_limit_daily_reset
+
+    now = time.time()
+
+    # Reset daily counters every 24 hours
+    if now - rate_limit_daily_reset > 86400:
+        rate_limit_daily.clear()
+        rate_limit_daily_reset = now
+
+    # Check QPS limit (sliding window)
+    recent_requests = [t for t in rate_limit_qps[client_ip] if now - t < 1.0]
+    rate_limit_qps[client_ip] = recent_requests
+
+    if len(recent_requests) >= RATE_LIMIT_QPS:
+        return False, f"Rate limit exceeded: {RATE_LIMIT_QPS} requests per second. Add your own API key to remove limits."
+
+    # Check daily limit
+    if rate_limit_daily[client_ip] >= RATE_LIMIT_DAILY:
+        return False, f"Daily limit exceeded: {RATE_LIMIT_DAILY} requests per day. Add your own API key to remove limits."
+
+    # Record this request
+    rate_limit_qps[client_ip].append(now)
+    rate_limit_daily[client_ip] += 1
+
+    return True, ""
+
+
+def get_api_key_for_request(request) -> tuple[str, bool]:
+    """Get API key to use. Returns (api_key, is_user_provided)."""
+    user_key = extract_api_key(request)
+
+    if user_key and (user_key.startswith("lk-") or user_key.startswith("lk_")):
+        return user_key, True
+
+    return FALLBACK_API_KEY, False
+
+
+# =============================================================================
+# HANDLERS
+# =============================================================================
+
+
 async def handle_sse(request):
     """Handle SSE connections for MCP protocol.
 
-    URL format: /sse?apiKey=lk-xxxxx
+    URL format: /sse or /sse?apiKey=lk-xxxxx
     """
-    api_key = extract_api_key(request)
+    api_key, is_user_provided = get_api_key_for_request(request)
+    client_ip = get_client_ip(request)
 
+    # Check if we have any API key to use
     if not api_key:
         return JSONResponse(
-            {"error": "Missing apiKey parameter. Use /sse?apiKey=lk-xxxxx"},
+            {"error": "No API key available. Please provide your Linkup API key: /sse?apiKey=lk-xxxxx"},
             status_code=401
         )
 
-    if not api_key.startswith("lk-") and not api_key.startswith("lk_"):
-        return JSONResponse(
-            {"error": "Invalid API key format. Linkup API keys start with 'lk-'"},
-            status_code=401
-        )
+    # Apply rate limiting only for free tier (fallback key users)
+    if not is_user_provided:
+        allowed, error_msg = check_rate_limit(client_ip)
+        if not allowed:
+            return JSONResponse({"error": error_msg}, status_code=429)
+        logger.info(f"Free tier connection from {client_ip}")
+    else:
+        logger.info(f"User API key connection from {client_ip}")
 
     # Set the API key for this request
-    # This is thread-safe in async context since each request runs in its own coroutine
     os.environ["LINKUP_API_KEY"] = api_key
-
-    logger.info(f"New SSE connection from {request.client.host}")
 
     # Create SSE transport and handle the connection
     sse_transport = SseServerTransport("/messages")
@@ -67,13 +154,20 @@ async def handle_sse(request):
 
 async def handle_messages(request):
     """Handle POST messages for SSE transport."""
-    api_key = extract_api_key(request)
+    api_key, is_user_provided = get_api_key_for_request(request)
+    client_ip = get_client_ip(request)
 
     if not api_key:
         return JSONResponse(
-            {"error": "Missing apiKey parameter"},
+            {"error": "No API key available"},
             status_code=401
         )
+
+    # Rate limit free tier
+    if not is_user_provided:
+        allowed, error_msg = check_rate_limit(client_ip)
+        if not allowed:
+            return JSONResponse({"error": error_msg}, status_code=429)
 
     os.environ["LINKUP_API_KEY"] = api_key
 
@@ -88,28 +182,40 @@ async def handle_health(request):
 
 async def handle_home(request):
     """Home page with usage instructions."""
-    html = """
+    has_fallback = bool(FALLBACK_API_KEY)
+    free_tier_info = f"""
+        <h2>Free Tier</h2>
+        <p>Try it without an API key (rate limited to {RATE_LIMIT_DAILY} requests/day):</p>
+        <pre>https://YOUR_DEPLOYMENT_URL/sse</pre>
+        <p>For unlimited access, add your own API key:</p>
+        <pre>https://YOUR_DEPLOYMENT_URL/sse?apiKey=YOUR_LINKUP_API_KEY</pre>
+    """ if has_fallback else """
+        <h2>Quick Start</h2>
+        <p>Add this MCP server to Claude or any MCP client:</p>
+        <pre>https://YOUR_DEPLOYMENT_URL/sse?apiKey=YOUR_LINKUP_API_KEY</pre>
+    """
+
+    html = f"""
     <!DOCTYPE html>
     <html>
     <head>
         <title>Linkup Company Research MCP</title>
         <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
-            h1 { color: #333; }
-            code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; }
-            pre { background: #f4f4f4; padding: 15px; border-radius: 8px; overflow-x: auto; }
-            .tools { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0; }
-            .tool { background: #e8f4fd; padding: 10px; border-radius: 6px; }
-            a { color: #0066cc; }
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }}
+            h1 {{ color: #333; }}
+            code {{ background: #f4f4f4; padding: 2px 6px; border-radius: 4px; }}
+            pre {{ background: #f4f4f4; padding: 15px; border-radius: 8px; overflow-x: auto; }}
+            .tools {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0; }}
+            .tool {{ background: #e8f4fd; padding: 10px; border-radius: 6px; }}
+            a {{ color: #0066cc; }}
+            .free-tier {{ background: #e8fde8; padding: 15px; border-radius: 8px; margin: 20px 0; }}
         </style>
     </head>
     <body>
         <h1>Linkup Company Research MCP</h1>
         <p>A comprehensive company research platform powered by <a href="https://linkup.so">Linkup's</a> agentic search API.</p>
 
-        <h2>Quick Start</h2>
-        <p>Add this MCP server to Claude Desktop or any MCP client:</p>
-        <pre>https://YOUR_DEPLOYMENT_URL/sse?apiKey=YOUR_LINKUP_API_KEY</pre>
+        {free_tier_info}
 
         <h2>Get Your API Key</h2>
         <p>Get a Linkup API key at <a href="https://linkup.so">linkup.so</a></p>
@@ -137,8 +243,8 @@ async def handle_home(request):
 
         <h2>API Endpoints</h2>
         <ul>
-            <li><code>GET /sse?apiKey=xxx</code> - SSE endpoint for MCP clients</li>
-            <li><code>POST /messages?apiKey=xxx</code> - Message endpoint for SSE transport</li>
+            <li><code>GET /sse</code> - SSE endpoint (free tier with rate limits)</li>
+            <li><code>GET /sse?apiKey=xxx</code> - SSE endpoint (unlimited with your key)</li>
             <li><code>GET /health</code> - Health check</li>
         </ul>
 
@@ -149,6 +255,18 @@ async def handle_home(request):
     return HTMLResponse(html)
 
 
+# Lifespan for startup/shutdown logging
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app):
+    """Log startup and shutdown events."""
+    logger.info("Linkup Company Research MCP server starting...")
+    logger.info(f"Fallback API key configured: {bool(FALLBACK_API_KEY)}")
+    yield
+    logger.info("Linkup Company Research MCP server shutting down...")
+
+
 # Create Starlette app with routes
 app = Starlette(
     routes=[
@@ -156,7 +274,8 @@ app = Starlette(
         Route("/health", handle_health),
         Route("/sse", handle_sse),
         Route("/messages", handle_messages, methods=["POST"]),
-    ]
+    ],
+    lifespan=lifespan,
 )
 
 
@@ -167,10 +286,14 @@ def main():
     port = int(os.environ.get("PORT", 8000))
     host = os.environ.get("HOST", "0.0.0.0")
 
-    logger.info(f"Starting Linkup Company Research MCP server on {host}:{port}")
-    logger.info(f"SSE endpoint: http://{host}:{port}/sse?apiKey=YOUR_API_KEY")
+    logger.info(f"Binding to {host}:{port}")
 
-    uvicorn.run(app, host=host, port=port)
+    uvicorn.run(
+        app,
+        host=host,
+        port=port,
+        log_level="info",
+    )
 
 
 if __name__ == "__main__":

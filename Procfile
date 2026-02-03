@@ -1,1 +1,1 @@
-web: python -m linkup_company_research.remote
+web: python main.py

@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "python -m linkup_company_research.remote",
+    "startCommand": "python main.py",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",

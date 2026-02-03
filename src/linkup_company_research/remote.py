@@ -23,6 +23,9 @@ from .server import mcp
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Shared SSE transport instance (must be shared between /sse and /messages)
+sse_transport = SseServerTransport("/messages")
+
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
@@ -139,9 +142,7 @@ async def handle_sse(request):
     # Set the API key for this request
     os.environ["LINKUP_API_KEY"] = api_key
 
-    # Create SSE transport and handle the connection
-    sse_transport = SseServerTransport("/messages")
-
+    # Use shared SSE transport
     async with sse_transport.connect_sse(
         request.scope, request.receive, request._send
     ) as streams:
@@ -154,24 +155,7 @@ async def handle_sse(request):
 
 async def handle_messages(request):
     """Handle POST messages for SSE transport."""
-    api_key, is_user_provided = get_api_key_for_request(request)
-    client_ip = get_client_ip(request)
-
-    if not api_key:
-        return JSONResponse(
-            {"error": "No API key available"},
-            status_code=401
-        )
-
-    # Rate limit free tier
-    if not is_user_provided:
-        allowed, error_msg = check_rate_limit(client_ip)
-        if not allowed:
-            return JSONResponse({"error": error_msg}, status_code=429)
-
-    os.environ["LINKUP_API_KEY"] = api_key
-
-    sse_transport = SseServerTransport("/messages")
+    # Use the shared transport's message handler
     return await sse_transport.handle_post_message(request.scope, request.receive, request._send)
 
 

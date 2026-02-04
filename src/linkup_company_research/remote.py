@@ -7,6 +7,7 @@ If no key is provided, a fallback key is used with rate limiting.
 Deploy to Railway, Render, or any platform that supports Python web servers.
 """
 
+import asyncio
 import os
 import time
 import logging
@@ -17,8 +18,8 @@ from starlette.responses import JSONResponse, HTMLResponse
 from starlette.routing import Route
 from mcp.server.sse import SseServerTransport
 
-# Import the MCP server instance and all tools
-from .server import mcp
+# Import the MCP server instance and helpers
+from .server import mcp, set_api_key, close_http_client
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -41,6 +42,9 @@ RATE_LIMIT_DAILY = 50  # Requests per day per IP
 rate_limit_qps: dict[str, list[float]] = defaultdict(list)
 rate_limit_daily: dict[str, int] = defaultdict(int)
 rate_limit_daily_reset: float = time.time()
+
+# Lock for thread-safe rate limit updates
+rate_limit_lock = asyncio.Lock()
 
 
 # =============================================================================
@@ -71,33 +75,34 @@ def extract_api_key(request) -> str | None:
     return request.query_params.get("apiKey") or request.query_params.get("api_key")
 
 
-def check_rate_limit(client_ip: str) -> tuple[bool, str]:
-    """Check if client is within rate limits. Returns (allowed, error_message)."""
+async def check_rate_limit(client_ip: str) -> tuple[bool, str]:
+    """Check if client is within rate limits (thread-safe). Returns (allowed, error_message)."""
     global rate_limit_daily_reset
 
-    now = time.time()
+    async with rate_limit_lock:
+        now = time.time()
 
-    # Reset daily counters every 24 hours
-    if now - rate_limit_daily_reset > 86400:
-        rate_limit_daily.clear()
-        rate_limit_daily_reset = now
+        # Reset daily counters every 24 hours
+        if now - rate_limit_daily_reset > 86400:
+            rate_limit_daily.clear()
+            rate_limit_daily_reset = now
 
-    # Check QPS limit (sliding window)
-    recent_requests = [t for t in rate_limit_qps[client_ip] if now - t < 1.0]
-    rate_limit_qps[client_ip] = recent_requests
+        # Check QPS limit (sliding window)
+        recent_requests = [t for t in rate_limit_qps[client_ip] if now - t < 1.0]
+        rate_limit_qps[client_ip] = recent_requests
 
-    if len(recent_requests) >= RATE_LIMIT_QPS:
-        return False, f"Rate limit exceeded: {RATE_LIMIT_QPS} requests per second. Add your own API key to remove limits."
+        if len(recent_requests) >= RATE_LIMIT_QPS:
+            return False, f"Rate limit exceeded: {RATE_LIMIT_QPS} requests per second. Add your own API key to remove limits."
 
-    # Check daily limit
-    if rate_limit_daily[client_ip] >= RATE_LIMIT_DAILY:
-        return False, f"Daily limit exceeded: {RATE_LIMIT_DAILY} requests per day. Add your own API key to remove limits."
+        # Check daily limit
+        if rate_limit_daily[client_ip] >= RATE_LIMIT_DAILY:
+            return False, f"Daily limit exceeded: {RATE_LIMIT_DAILY} requests per day. Add your own API key to remove limits."
 
-    # Record this request
-    rate_limit_qps[client_ip].append(now)
-    rate_limit_daily[client_ip] += 1
+        # Record this request
+        rate_limit_qps[client_ip].append(now)
+        rate_limit_daily[client_ip] += 1
 
-    return True, ""
+        return True, ""
 
 
 def get_api_key_for_request(request) -> tuple[str, bool]:
@@ -132,15 +137,15 @@ async def handle_sse(request):
 
     # Apply rate limiting only for free tier (fallback key users)
     if not is_user_provided:
-        allowed, error_msg = check_rate_limit(client_ip)
+        allowed, error_msg = await check_rate_limit(client_ip)
         if not allowed:
             return JSONResponse({"error": error_msg}, status_code=429)
         logger.info(f"Free tier connection from {client_ip}")
     else:
         logger.info(f"User API key connection from {client_ip}")
 
-    # Set the API key for this request
-    os.environ["LINKUP_API_KEY"] = api_key
+    # Set the API key for this request (async-safe via contextvars)
+    set_api_key(api_key)
 
     # Use shared SSE transport
     async with sse_transport.connect_sse(
@@ -244,11 +249,13 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app):
-    """Log startup and shutdown events."""
+    """Manage startup and shutdown events."""
     logger.info("Linkup Company Research MCP server starting...")
     logger.info(f"Fallback API key configured: {bool(FALLBACK_API_KEY)}")
     yield
+    # Cleanup shared HTTP client on shutdown
     logger.info("Linkup Company Research MCP server shutting down...")
+    await close_http_client()
 
 
 # Create Starlette app with routes

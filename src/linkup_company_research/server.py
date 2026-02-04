@@ -25,6 +25,7 @@ Tools:
 
 import json
 import os
+from contextvars import ContextVar
 from typing import Literal, Optional
 
 import httpx
@@ -34,6 +35,46 @@ from mcp.types import Icon
 from .prompts import get_prompt
 from .schemas import get_schema
 from .types import OutputFormat, SearchParams, build_search_params
+
+# =============================================================================
+# REQUEST-SCOPED API KEY (Thread-safe for multi-user)
+# =============================================================================
+
+# ContextVar provides async-safe per-request storage (no race conditions)
+current_api_key: ContextVar[str] = ContextVar("current_api_key", default="")
+
+# Shared HTTP client for connection pooling
+_http_client: httpx.AsyncClient | None = None
+
+
+def set_api_key(key: str) -> None:
+    """Set API key for current request context (async-safe)."""
+    current_api_key.set(key)
+
+
+def get_api_key() -> str:
+    """Get API key for current request context, falls back to env var."""
+    key = current_api_key.get()
+    if not key:
+        key = os.environ.get("LINKUP_API_KEY", "")
+    return key
+
+
+async def get_http_client() -> httpx.AsyncClient:
+    """Get shared HTTP client for connection pooling."""
+    global _http_client
+    if _http_client is None:
+        _http_client = httpx.AsyncClient(timeout=120.0)
+    return _http_client
+
+
+async def close_http_client() -> None:
+    """Close shared HTTP client (call on shutdown)."""
+    global _http_client
+    if _http_client is not None:
+        await _http_client.close()
+        _http_client = None
+
 
 mcp = FastMCP(
     "linkup-company-research",
@@ -101,16 +142,17 @@ async def _search(
     if params.max_results:
         payload["maxResults"] = params.max_results
 
-    # Execute request with increased timeout for deep searches
+    # Execute request using shared client (connection pooling)
     timeout = 120.0 if depth == "deep" else 60.0
-    async with httpx.AsyncClient(timeout=timeout) as client:
-        response = await client.post(
-            LINKUP_API_URL,
-            headers={"Authorization": f"Bearer {os.environ['LINKUP_API_KEY']}"},
-            json=payload,
-        )
-        response.raise_for_status()
-        return response.json()
+    client = await get_http_client()
+    response = await client.post(
+        LINKUP_API_URL,
+        headers={"Authorization": f"Bearer {get_api_key()}"},
+        json=payload,
+        timeout=timeout,
+    )
+    response.raise_for_status()
+    return response.json()
 
 
 def _format_response(data: dict, output_format: OutputFormat) -> str:

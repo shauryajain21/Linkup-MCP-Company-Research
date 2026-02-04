@@ -4,7 +4,7 @@ An MCP server that provides comprehensive company research tools powered by [Lin
 
 ## Features
 
-- **10 research tools** covering all aspects of company intelligence
+- **17 research tools** covering all aspects of company intelligence
 - **Dual output formats**: Natural language answers with sources, or structured JSON for automation
 - **Full parameter control**: Date filters, domain filters, image support, and result limits
 - **Optimized prompts**: Following Linkup's best practices for accurate, comprehensive research
@@ -13,16 +13,23 @@ An MCP server that provides comprehensive company research tools powered by [Lin
 
 | Tool | Description | Search Depth |
 |------|-------------|--------------|
-| `company_overview` | Company description, industry, size, business model, products | Deep |
-| `company_news` | Latest news and developments (with date/topic filters) | Standard |
-| `competitive_landscape` | Competitors, market position, differentiators | Deep |
-| `company_financials` | Funding history, valuation, revenue, investors | Deep |
-| `company_leadership` | Executives, founders, board members, advisors | Standard |
+| `company_overview` | Company identity, location, size, industry, business model | Deep |
+| `company_products` | Products, services, pricing, and use cases | Standard |
+| `company_business_model` | Revenue streams, unit economics, go-to-market strategy | Standard |
+| `company_target_market` | Ideal customer profile, segments, geographic markets | Standard |
+| `company_financials` | Revenue, profitability, key metrics (ARR, MRR, GMV, NRR) | Deep |
+| `company_funding` | Funding rounds, valuation, investors | Deep |
+| `company_leadership` | CEO, C-suite, founders, board members, key hires | Standard |
+| `company_culture` | Glassdoor ratings, work policy, benefits, employer brand | Standard |
 | `company_clients` | Customers, case studies, testimonials | Deep |
-| `company_technology` | Tech stack, patents, engineering, open source | Deep |
-| `company_hiring` | Job openings, growth signals, Glassdoor ratings | Standard |
-| `company_partnerships` | Partners, integrations, ecosystem | Deep |
-| `company_social_presence` | Social media, content strategy, community | Standard |
+| `company_partnerships` | Strategic partners, integrations, ecosystem | Deep |
+| `company_technology` | Tech stack, patents, R&D, open source contributions | Deep |
+| `competitive_landscape` | Competitors, market position, differentiators | Deep |
+| `company_market` | Industry context, TAM/SAM/SOM, trends, regulations | Deep |
+| `company_news` | Latest news, product launches, announcements | Standard |
+| `company_strategy` | Growth plans, expansion, M&A history, IPO signals | Deep |
+| `company_risks` | Risk assessment across competitive, regulatory, legal dimensions | Deep |
+| `company_esg` | ESG initiatives, sustainability, reputation, controversies | Standard |
 
 ## Output Formats
 
@@ -43,7 +50,7 @@ Returns data in a defined JSON schema. Best for automation, CRM integration, and
 | `output_format` | str | `"answer"` (default) or `"structured"` |
 | `max_results` | int | Maximum sources to consider (1-50, default: 10-15) |
 
-### Date Filters (news, financials)
+### Date Filters (news, financials, funding)
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `from_date` | str | Start date in YYYY-MM-DD format |
@@ -58,9 +65,9 @@ Returns data in a defined JSON schema. Best for automation, CRM integration, and
 ### Other Parameters
 | Parameter | Type | Tools | Description |
 |-----------|------|-------|-------------|
-| `include_images` | bool | overview, competitive, leadership, social | Include relevant images |
+| `include_images` | bool | overview, competitive_landscape, leadership | Include relevant images |
 | `topic` | str | news | Filter by topic (e.g., "funding", "product launch") |
-| `department` | str | hiring | Filter by department (e.g., "engineering", "sales") |
+| `product_name` | str | products | Filter for a specific product |
 
 ## Installation
 
@@ -129,8 +136,8 @@ Once connected, you can ask your AI assistant things like:
 
 ### With Parameters
 - "Get Anthropic's funding news from the last 6 months" (date filter)
-- "Find Notion's customers and case studies" (new tool)
-- "What tech stack does Vercel use?" (new tool)
+- "Find Notion's customers and case studies"
+- "What tech stack does Vercel use?"
 
 ### Structured Output for Automation
 - "Get Stripe's company overview in structured format" (returns JSON)
@@ -141,32 +148,53 @@ Once connected, you can ask your AI assistant things like:
 ### company_overview
 Researches the company's website, LinkedIn, and press coverage to provide detailed information about what they do, their industry, size, and business model.
 
-### company_news
-Searches news sources, press releases, and publications for recent coverage. Supports filtering by date range, topic, and source domains.
+### company_products
+Researches product pages, pricing, and documentation to provide detailed information about offerings, pricing models, and use cases.
 
-### competitive_landscape
-Identifies competitors, market positioning, differentiators, and competitive advantages through research of industry reports, review sites, and company materials.
+### company_business_model
+Researches how the company makes money, their revenue streams, unit economics, and go-to-market strategy.
+
+### company_target_market
+Researches the company's ideal customer profile, customer segments, geographic markets, and vertical focus.
 
 ### company_financials
-Researches funding history, valuation, revenue, investors, and financial health through Crunchbase, press releases, and financial news.
+Researches revenue, profitability, key business metrics (ARR, MRR, GMV, NRR), and financial health indicators.
+
+### company_funding
+Researches funding history, funding rounds, valuation, and investors through Crunchbase, PitchBook, press releases, and financial news.
 
 ### company_leadership
-Identifies executives, founders, board members, and advisors through company pages, LinkedIn, and press releases.
+Identifies CEO, C-suite executives, founders, board members, key hires, and notable departures.
+
+### company_culture
+Researches Glassdoor ratings, employer awards, culture attributes, work policy (remote/hybrid/in-office), and benefits.
 
 ### company_clients
 Researches customer pages, case studies, press releases, and review sites to identify verified customers and their use cases.
 
-### company_technology
-Analyzes engineering blogs, job postings, tech detection tools, patents, and open source contributions to understand technical capabilities.
-
-### company_hiring
-Researches careers pages, job boards, LinkedIn, and Glassdoor to understand hiring patterns and employee growth signals.
-
 ### company_partnerships
 Researches partner pages, integration marketplaces, press releases, and partner programs to map the company's ecosystem.
 
-### company_social_presence
-Researches social profiles, content channels, community platforms, and executive thought leadership to understand their digital presence.
+### company_technology
+Analyzes engineering blogs, job postings, tech detection tools, patents, and open source contributions to understand technical capabilities.
+
+### competitive_landscape
+Identifies competitors, market positioning, differentiators, and competitive advantages through research of industry reports, review sites, and company materials.
+
+### company_market
+Researches industry classification, market size (TAM/SAM/SOM), industry growth rate, market trends, and regulatory environment.
+
+### company_news
+Searches news sources, press releases, and publications for recent coverage including product launches, funding, partnerships, and M&A activity.
+
+### company_strategy
+Researches growth strategy, expansion plans (geographic, product, vertical), M&A history, acquisition rumors, and IPO signals.
+
+### company_risks
+Researches competitive risks, regulatory risks, legal exposure, key person dependency, customer concentration, technology risks, and market risks.
+
+### company_esg
+Researches ESG initiatives, sustainability commitments, environmental programs, social initiatives, governance, controversies, and brand perception.
 
 ## Development
 
@@ -185,7 +213,7 @@ LINKUP_API_KEY="your-key" linkup-company-research
 ```
 src/linkup_company_research/
 ├── __init__.py
-├── server.py      # Main MCP server with 10 tools
+├── server.py      # Main MCP server with 17 tools
 ├── schemas.py     # JSON schemas for structuredOutput
 ├── prompts.py     # Optimized prompt templates
 └── types.py       # Type definitions

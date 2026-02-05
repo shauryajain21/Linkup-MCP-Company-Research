@@ -15,10 +15,16 @@ import uuid
 from collections import defaultdict
 from contextlib import asynccontextmanager
 
+from pathlib import Path
+
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse, HTMLResponse
-from starlette.routing import Route
+from starlette.responses import JSONResponse, HTMLResponse, FileResponse
+from starlette.routing import Route, Mount
+from starlette.staticfiles import StaticFiles
 from mcp.server.sse import SseServerTransport
+
+# Path to docs folder for static files
+DOCS_DIR = Path(__file__).parent.parent.parent / "docs"
 
 # Import the MCP server instance and helpers
 from .server import mcp, set_api_key, close_http_client
@@ -259,77 +265,20 @@ async def handle_health(request):
 
 
 async def handle_home(request):
-    """Home page with usage instructions."""
-    has_fallback = bool(FALLBACK_API_KEY)
-    free_tier_info = f"""
-        <h2>Free Tier</h2>
-        <p>Try it without an API key (rate limited to {RATE_LIMIT_DAILY} requests/day):</p>
-        <pre>https://YOUR_DEPLOYMENT_URL/sse</pre>
-        <p>For unlimited access, add your own API key:</p>
-        <pre>https://YOUR_DEPLOYMENT_URL/sse?apiKey=YOUR_LINKUP_API_KEY</pre>
-    """ if has_fallback else """
-        <h2>Quick Start</h2>
-        <p>Add this MCP server to Claude or any MCP client:</p>
-        <pre>https://YOUR_DEPLOYMENT_URL/sse?apiKey=YOUR_LINKUP_API_KEY</pre>
-    """
+    """Serve the custom homepage from docs/index.html."""
+    index_path = DOCS_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path, media_type="text/html")
+    # Fallback if docs/index.html doesn't exist
+    return HTMLResponse("<h1>Linkup Company Research MCP</h1><p>Visit /sse to connect.</p>")
 
-    html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Linkup Company Research MCP</title>
-        <style>
-            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }}
-            h1 {{ color: #333; }}
-            code {{ background: #f4f4f4; padding: 2px 6px; border-radius: 4px; }}
-            pre {{ background: #f4f4f4; padding: 15px; border-radius: 8px; overflow-x: auto; }}
-            .tools {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0; }}
-            .tool {{ background: #e8f4fd; padding: 10px; border-radius: 6px; }}
-            a {{ color: #0066cc; }}
-        </style>
-    </head>
-    <body>
-        <h1>Linkup Company Research MCP</h1>
-        <p>A comprehensive company research platform powered by <a href="https://linkup.so">Linkup's</a> agentic search API.</p>
 
-        {free_tier_info}
-
-        <h2>Get Your API Key</h2>
-        <p>Get a Linkup API key at <a href="https://linkup.so">linkup.so</a></p>
-
-        <h2>Available Tools (17)</h2>
-        <div class="tools">
-            <div class="tool"><strong>company_overview</strong> - Identity, location, size</div>
-            <div class="tool"><strong>company_products</strong> - Products, services, pricing</div>
-            <div class="tool"><strong>company_business_model</strong> - Revenue streams, GTM</div>
-            <div class="tool"><strong>company_target_market</strong> - ICP, segments, geos</div>
-            <div class="tool"><strong>company_financials</strong> - Revenue, metrics</div>
-            <div class="tool"><strong>company_funding</strong> - Funding, valuation, investors</div>
-            <div class="tool"><strong>company_leadership</strong> - C-suite, board, hires</div>
-            <div class="tool"><strong>company_culture</strong> - Glassdoor, employer brand</div>
-            <div class="tool"><strong>company_clients</strong> - Customers, case studies</div>
-            <div class="tool"><strong>company_partnerships</strong> - Partners, integrations</div>
-            <div class="tool"><strong>company_technology</strong> - Tech stack, patents</div>
-            <div class="tool"><strong>competitive_landscape</strong> - Competitors, positioning</div>
-            <div class="tool"><strong>company_market</strong> - TAM/SAM/SOM, trends</div>
-            <div class="tool"><strong>company_news</strong> - Recent activity, news</div>
-            <div class="tool"><strong>company_strategy</strong> - Growth plans, M&A, IPO</div>
-            <div class="tool"><strong>company_risks</strong> - Risk assessment</div>
-            <div class="tool"><strong>company_esg</strong> - ESG, sustainability</div>
-        </div>
-
-        <h2>API Endpoints</h2>
-        <ul>
-            <li><code>GET /sse</code> - SSE endpoint (free tier with rate limits)</li>
-            <li><code>GET /sse?apiKey=xxx</code> - SSE endpoint (unlimited with your key)</li>
-            <li><code>GET /health</code> - Health check</li>
-        </ul>
-
-        <p><a href="https://github.com/LinkupPlatform/linkup-company-research-mcp">GitHub Repository</a></p>
-    </body>
-    </html>
-    """
-    return HTMLResponse(html)
+async def handle_logo(request):
+    """Serve the logo image."""
+    logo_path = DOCS_DIR / "logo.png"
+    if logo_path.exists():
+        return FileResponse(logo_path, media_type="image/png")
+    return JSONResponse({"error": "Logo not found"}, status_code=404)
 
 
 @asynccontextmanager
@@ -343,15 +292,19 @@ async def lifespan(app):
 
 
 # Create Starlette app with routes
-app = Starlette(
-    routes=[
-        Route("/", handle_home),
-        Route("/health", handle_health),
-        Route("/sse", handle_sse),
-        Route("/messages/{session_id}", handle_messages, methods=["POST"]),
-    ],
-    lifespan=lifespan,
-)
+routes = [
+    Route("/", handle_home),
+    Route("/logo.png", handle_logo),
+    Route("/health", handle_health),
+    Route("/sse", handle_sse),
+    Route("/messages/{session_id}", handle_messages, methods=["POST"]),
+]
+
+# Mount static files from docs folder (for logo, etc.) if it exists
+if DOCS_DIR.exists():
+    routes.append(Mount("/static", app=StaticFiles(directory=DOCS_DIR), name="static"))
+
+app = Starlette(routes=routes, lifespan=lifespan)
 
 
 def main():

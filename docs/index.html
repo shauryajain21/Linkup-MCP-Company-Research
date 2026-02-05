@@ -6,7 +6,7 @@
     <title>Linkup Company Research MCP</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --color-primary: #4a5d4a;
@@ -30,7 +30,7 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--color-bg);
             color: var(--color-text);
             line-height: 1.6;
@@ -240,6 +240,14 @@
             font-weight: 500;
         }
 
+        .api-key-note code {
+            background: rgba(0,0,0,0.1);
+            padding: 0.125rem 0.375rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8125rem;
+        }
+
         /* Dropdown integrations */
         details.integration-dropdown {
             padding: 0.75rem 0;
@@ -298,54 +306,17 @@
         }
 
         .prompt-item {
-            padding: 1rem 1.5rem;
+            padding: 0.875rem 1.5rem;
             border-bottom: 1px solid var(--color-border);
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
         }
 
         .prompt-item:last-child {
             border-bottom: none;
         }
 
-        .prompt-number {
-            width: 24px;
-            height: 24px;
-            background: var(--color-primary);
-            color: white;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 600;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .prompt-content {
-            flex: 1;
-        }
-
         .prompt-text {
             font-size: 0.9375rem;
             color: var(--color-text);
-            margin-bottom: 0.375rem;
-        }
-
-        .prompt-tools {
-            font-size: 0.8125rem;
-            color: var(--color-text-secondary);
-        }
-
-        .prompt-tools code {
-            background: var(--color-bg);
-            padding: 0.125rem 0.375rem;
-            border-radius: 4px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.75rem;
-            color: var(--color-primary);
         }
 
         /* Footer */
@@ -517,7 +488,7 @@
         </div>
 
         <div class="api-key-note">
-            <strong>API Key:</strong> You'll be prompted to enter your Linkup API key on first use. <a href="https://app.linkup.so/sign-up" target="_blank">Get your free API key</a>
+            <strong>API Key:</strong> Change <code>YOUR-API-KEY</code> with your Linkup API key. <a href="https://app.linkup.so/sign-up" target="_blank">Get your free API key</a>
         </div>
 
         <div class="integrations-card">
@@ -527,7 +498,7 @@
                 <div class="code-inline">{
   "mcpServers": {
     "linkup-company-research": {
-      "url": "https://mcp.linkup.so/company-research"
+      "url": "https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY""
     }
   }
 }</div>
@@ -535,13 +506,23 @@
 
             <div class="integration-item">
                 <div class="integration-title">Claude Code</div>
-                <div class="code-inline">claude mcp add --transport http linkup-company-research https://mcp.linkup.so/company-research</div>
+                <div class="code-inline">claude mcp add --transport http linkup-company-research https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY"</div>
             </div>
+
+            <details class="integration-dropdown">
+                <summary>Claude Code (Local)</summary>
+                <div class="dropdown-content">
+                    <p class="integration-desc">Run the server locally using uvx:</p>
+                    <div class="code-inline">claude mcp add linkup-company-research -- uvx linkup-company-research-mcp</div>
+                    <p class="integration-desc" style="margin-top: 0.75rem;">Then set your API key as an environment variable:</p>
+                    <div class="code-inline">export LINKUP_API_KEY=YOUR-API-KEY</div>
+                </div>
+            </details>
 
             <div class="integration-item">
                 <div class="integration-title">Claude Desktop</div>
                 <p class="integration-desc">Go to Settings → Connectors → Add Custom Connector. Name: <strong>linkup-company-research</strong>, URL:</p>
-                <div class="code-inline">https://mcp.linkup.so/company-research</div>
+                <div class="code-inline">https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY"</div>
             </div>
 
             <details class="integration-dropdown">
@@ -552,7 +533,7 @@
   "servers": {
     "linkup-company-research": {
       "type": "http",
-      "url": "https://mcp.linkup.so/company-research"
+      "url": "https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY""
     }
   }
 }</div>
@@ -566,7 +547,7 @@
                     <div class="code-inline">{
   "mcpServers": {
     "linkup-company-research": {
-      "serverUrl": "https://mcp.linkup.so/company-research"
+      "serverUrl": "https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY""
     }
   }
 }</div>
@@ -580,7 +561,7 @@
                     <div class="code-inline">{
   "context_servers": {
     "linkup-company-research": {
-      "url": "https://mcp.linkup.so/company-research"
+      "url": "https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY""
     }
   }
 }</div>
@@ -590,7 +571,7 @@
             <details class="integration-dropdown">
                 <summary>Codex</summary>
                 <div class="dropdown-content">
-                    <div class="code-inline">codex mcp add linkup-company-research --url https://mcp.linkup.so/company-research</div>
+                    <div class="code-inline">codex mcp add linkup-company-research --url https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY"</div>
                 </div>
             </details>
 
@@ -602,7 +583,7 @@
   "mcp": {
     "linkup-company-research": {
       "type": "remote",
-      "url": "https://mcp.linkup.so/company-research",
+      "url": "https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY"",
       "enabled": true
     }
   }
@@ -617,7 +598,7 @@
                     <div class="code-inline">{
   "mcpServers": {
     "linkup-company-research": {
-      "httpUrl": "https://mcp.linkup.so/company-research"
+      "httpUrl": "https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY""
     }
   }
 }</div>
@@ -630,7 +611,7 @@
                     <p class="integration-desc">Go to Settings > MCP Servers > Add MCP Server:</p>
                     <div class="code-inline">{
   "linkup-company-research": {
-    "url": "https://mcp.linkup.so/company-research"
+    "url": "https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY""
   }
 }</div>
                 </div>
@@ -643,7 +624,7 @@
                     <div class="code-inline">{
   "mcpServers": {
     "linkup-company-research": {
-      "url": "https://mcp.linkup.so/company-research"
+      "url": "https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY""
     }
   }
 }</div>
@@ -658,7 +639,7 @@
   "mcpServers": {
     "linkup-company-research": {
       "type": "streamable-http",
-      "url": "https://mcp.linkup.so/company-research"
+      "url": "https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY""
     }
   }
 }</div>
@@ -672,7 +653,7 @@
                     <div class="code-inline">{
   "mcpServers": {
     "linkup-company-research": {
-      "url": "https://mcp.linkup.so/company-research"
+      "url": "https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY""
     }
   }
 }</div>
@@ -688,34 +669,19 @@
 
         <div class="prompts-card">
             <div class="prompt-item">
-                <span class="prompt-number">1</span>
-                <div class="prompt-content">
-                    <p class="prompt-text">"Due diligence report on Stripe"</p>
-                </div>
+                <p class="prompt-text">"Due diligence report on Stripe"</p>
             </div>
             <div class="prompt-item">
-                <span class="prompt-number">2</span>
-                <div class="prompt-content">
-                    <p class="prompt-text">"Notion's products, pricing, and enterprise clients"</p>
-                </div>
+                <p class="prompt-text">"Notion's products, pricing, and enterprise clients"</p>
             </div>
             <div class="prompt-item">
-                <span class="prompt-number">3</span>
-                <div class="prompt-content">
-                    <p class="prompt-text">"Anthropic leadership, culture, and recent news"</p>
-                </div>
+                <p class="prompt-text">"Anthropic leadership, culture, and recent news"</p>
             </div>
             <div class="prompt-item">
-                <span class="prompt-number">4</span>
-                <div class="prompt-content">
-                    <p class="prompt-text">"Compare Databricks, Snowflake, and Scale AI"</p>
-                </div>
+                <p class="prompt-text">"Use linkup to compare Databricks, Snowflake, and Scale AI"</p>
             </div>
             <div class="prompt-item">
-                <span class="prompt-number">5</span>
-                <div class="prompt-content">
-                    <p class="prompt-text">"OpenAI overview as structured JSON"</p>
-                </div>
+                <p class="prompt-text">"Tesla's ESG initiatives and sustainability record"</p>
             </div>
         </div>
     </main>

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linkup Company Research MCP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #4a5d4a;
+            --color-primary-light: #6b7c6b;
+            --color-bg: #faf9f7;
+            --color-bg-card: #ffffff;
+            --color-bg-code: #1e1e1e;
+            --color-text: #1a1a1a;
+            --color-text-secondary: #666666;
+            --color-border: #e5e5e5;
+            --color-accent: #d4e5d4;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 2rem 4rem;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--color-primary);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin: 0 auto 1.25rem;
+        }
+
+        .hero h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero p {
+            color: var(--color-text-secondary);
+            font-size: 1.0625rem;
+            max-width: 550px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .hero-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9375rem;
+        }
+
+        .hero-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 2.5rem 0 1rem;
+        }
+
+        .section-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--color-primary);
+            border-radius: 50%;
+        }
+
+        .section-label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            color: var(--color-text-secondary);
+        }
+
+        /* Tools Table */
+        .tools-table {
+            width: 100%;
+            background: var(--color-bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border-collapse: collapse;
+            overflow: hidden;
+        }
+
+        .tools-table th,
+        .tools-table td {
+            padding: 0.875rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .tools-table th {
+            background: var(--color-bg);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .tools-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tools-table td {
+            font-size: 0.9rem;
+        }
+
+        .tool-name {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8125rem;
+            color: var(--color-primary);
+            font-weight: 500;
+        }
+
+        .tool-desc {
+            color: var(--color-text-secondary);
+        }
+
+        .depth-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .depth-deep {
+            background: #f3e5f5;
+            color: #6b21a8;
+        }
+
+        .depth-standard {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        /* Integrations */
+        .integrations-card {
+            background: var(--color-bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+        }
+
+        .integration-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .integration-item:first-child {
+            padding-top: 0;
+        }
+
+        .integration-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .integration-title {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .integration-desc {
+            font-size: 0.8125rem;
+            color: var(--color-text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .code-inline {
+            background: var(--color-bg-code);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8125rem;
+            color: #e4e4e7;
+            line-height: 1.5;
+            white-space: pre;
+        }
+
+        .code-inline .comment {
+            color: #6b7280;
+        }
+
+        .code-inline .string {
+            color: #c3e88d;
+        }
+
+        .code-inline .property {
+            color: #89ddff;
+        }
+
+        /* Dropdown integrations */
+        details.integration-dropdown {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        details.integration-dropdown:last-of-type {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        details.integration-dropdown summary {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--color-text-secondary);
+        }
+
+        details.integration-dropdown summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details.integration-dropdown summary::after {
+            content: '+';
+            font-size: 1.125rem;
+            font-weight: 400;
+            color: var(--color-text-secondary);
+        }
+
+        details.integration-dropdown[open] summary::after {
+            content: '−';
+        }
+
+        details.integration-dropdown[open] summary {
+            color: var(--color-text);
+            margin-bottom: 0.5rem;
+        }
+
+        details.integration-dropdown .dropdown-content {
+            padding-top: 0.5rem;
+        }
+
+        details.integration-dropdown .integration-desc {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Prompts */
+        .prompts-card {
+            background: var(--color-bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .prompt-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .prompt-item:last-child {
+            border-bottom: none;
+        }
+
+        .prompt-number {
+            width: 24px;
+            height: 24px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .prompt-content {
+            flex: 1;
+        }
+
+        .prompt-text {
+            font-size: 0.9375rem;
+            color: var(--color-text);
+            margin-bottom: 0.375rem;
+        }
+
+        .prompt-tools {
+            font-size: 0.8125rem;
+            color: var(--color-text-secondary);
+        }
+
+        .prompt-tools code {
+            background: var(--color-bg);
+            padding: 0.125rem 0.375rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.75rem;
+            color: var(--color-primary);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+        }
+
+        footer a {
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            main {
+                padding: 2rem 1rem 3rem;
+            }
+
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+
+            .tools-table {
+                font-size: 0.8125rem;
+            }
+
+            .tools-table th,
+            .tools-table td {
+                padding: 0.625rem 0.75rem;
+            }
+
+            .tool-desc {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points="7.5 4.21 12 6.81 16.5 4.21"/>
+                    <polyline points="7.5 19.79 7.5 14.6 3 12"/>
+                    <polyline points="21 12 16.5 14.6 16.5 19.79"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                </svg>
+            </div>
+            <h1>Linkup Company Research MCP</h1>
+            <p>17 powerful tools to research any company. Financials, funding, competitors, technology, leadership, and more.</p>
+            <a href="https://app.linkup.so/sign-up" target="_blank" class="hero-link">
+                Get your API key
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+            </a>
+        </section>
+
+        <!-- Tools -->
+        <div class="section-header">
+            <span class="section-dot"></span>
+            <span class="section-label">Available Tools</span>
+        </div>
+
+        <table class="tools-table">
+            <thead>
+                <tr>
+                    <th>Tool</th>
+                    <th>Description</th>
+                    <th>Depth</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="tool-name">company_overview</span></td>
+                    <td class="tool-desc">Company identity, location, size, industry, and business model</td>
+                    <td><span class="depth-badge depth-deep">Deep</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_financials</span></td>
+                    <td class="tool-desc">Revenue, profitability, ARR, MRR, GMV, NRR metrics</td>
+                    <td><span class="depth-badge depth-deep">Deep</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_funding</span></td>
+                    <td class="tool-desc">Funding rounds, valuation, and investors</td>
+                    <td><span class="depth-badge depth-deep">Deep</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_clients</span></td>
+                    <td class="tool-desc">Customers, case studies, and testimonials</td>
+                    <td><span class="depth-badge depth-deep">Deep</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_partnerships</span></td>
+                    <td class="tool-desc">Strategic partners, integrations, and ecosystem</td>
+                    <td><span class="depth-badge depth-deep">Deep</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_technology</span></td>
+                    <td class="tool-desc">Tech stack, patents, R&D, open source contributions</td>
+                    <td><span class="depth-badge depth-deep">Deep</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">competitive_landscape</span></td>
+                    <td class="tool-desc">Competitors, market position, and differentiators</td>
+                    <td><span class="depth-badge depth-deep">Deep</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_market</span></td>
+                    <td class="tool-desc">Industry context, TAM/SAM/SOM, trends, regulations</td>
+                    <td><span class="depth-badge depth-deep">Deep</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_strategy</span></td>
+                    <td class="tool-desc">Growth plans, expansion, M&A history, IPO signals</td>
+                    <td><span class="depth-badge depth-deep">Deep</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_risks</span></td>
+                    <td class="tool-desc">Risk assessment across financial, operational, reputational</td>
+                    <td><span class="depth-badge depth-deep">Deep</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_products</span></td>
+                    <td class="tool-desc">Products, services, pricing, and use cases</td>
+                    <td><span class="depth-badge depth-standard">Standard</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_business_model</span></td>
+                    <td class="tool-desc">Revenue streams, unit economics, go-to-market</td>
+                    <td><span class="depth-badge depth-standard">Standard</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_target_market</span></td>
+                    <td class="tool-desc">Ideal customer profile, segments, geographic markets</td>
+                    <td><span class="depth-badge depth-standard">Standard</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_leadership</span></td>
+                    <td class="tool-desc">CEO, C-suite, founders, board members, key hires</td>
+                    <td><span class="depth-badge depth-standard">Standard</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_culture</span></td>
+                    <td class="tool-desc">Glassdoor ratings, work policy, benefits, employer brand</td>
+                    <td><span class="depth-badge depth-standard">Standard</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_news</span></td>
+                    <td class="tool-desc">Latest news, product launches, announcements</td>
+                    <td><span class="depth-badge depth-standard">Standard</span></td>
+                </tr>
+                <tr>
+                    <td><span class="tool-name">company_esg</span></td>
+                    <td class="tool-desc">ESG initiatives, sustainability, reputation, controversies</td>
+                    <td><span class="depth-badge depth-standard">Standard</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Integrations -->
+        <div class="section-header">
+            <span class="section-dot"></span>
+            <span class="section-label">Integrations</span>
+        </div>
+
+        <div class="integrations-card">
+            <div class="integration-item">
+                <div class="integration-title">Cursor</div>
+                <p class="integration-desc">Add to ~/.cursor/mcp.json:</p>
+                <div class="code-inline">{
+  "mcpServers": {
+    "linkup-company-research": {
+      "url": "https://mcp.linkup.so/company-research"
+    }
+  }
+}</div>
+            </div>
+
+            <div class="integration-item">
+                <div class="integration-title">Claude Code</div>
+                <div class="code-inline">claude mcp add --transport http linkup-company-research https://mcp.linkup.so/company-research</div>
+            </div>
+
+            <div class="integration-item">
+                <div class="integration-title">Claude Desktop</div>
+                <p class="integration-desc">Add to ~/Library/Application Support/Claude/claude_desktop_config.json (macOS) or %APPDATA%\Claude\claude_desktop_config.json (Windows):</p>
+                <div class="code-inline">{
+  "mcpServers": {
+    "linkup-company-research": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.linkup.so/company-research"]
+    }
+  }
+}</div>
+            </div>
+
+            <details class="integration-dropdown">
+                <summary>VS Code</summary>
+                <div class="dropdown-content">
+                    <p class="integration-desc">Add to .vscode/mcp.json:</p>
+                    <div class="code-inline">{
+  "servers": {
+    "linkup-company-research": {
+      "type": "http",
+      "url": "https://mcp.linkup.so/company-research"
+    }
+  }
+}</div>
+                </div>
+            </details>
+
+            <details class="integration-dropdown">
+                <summary>Windsurf</summary>
+                <div class="dropdown-content">
+                    <p class="integration-desc">Add to ~/.codeium/windsurf/mcp_config.json:</p>
+                    <div class="code-inline">{
+  "mcpServers": {
+    "linkup-company-research": {
+      "serverUrl": "https://mcp.linkup.so/company-research"
+    }
+  }
+}</div>
+                </div>
+            </details>
+
+            <details class="integration-dropdown">
+                <summary>Zed</summary>
+                <div class="dropdown-content">
+                    <p class="integration-desc">Add to your Zed settings:</p>
+                    <div class="code-inline">{
+  "context_servers": {
+    "linkup-company-research": {
+      "url": "https://mcp.linkup.so/company-research"
+    }
+  }
+}</div>
+                </div>
+            </details>
+
+            <details class="integration-dropdown">
+                <summary>Codex</summary>
+                <div class="dropdown-content">
+                    <div class="code-inline">codex mcp add linkup-company-research --url https://mcp.linkup.so/company-research</div>
+                </div>
+            </details>
+
+            <details class="integration-dropdown">
+                <summary>OpenCode</summary>
+                <div class="dropdown-content">
+                    <p class="integration-desc">Add to your opencode.json:</p>
+                    <div class="code-inline">{
+  "mcp": {
+    "linkup-company-research": {
+      "type": "remote",
+      "url": "https://mcp.linkup.so/company-research",
+      "enabled": true
+    }
+  }
+}</div>
+                </div>
+            </details>
+
+            <details class="integration-dropdown">
+                <summary>Gemini CLI</summary>
+                <div class="dropdown-content">
+                    <p class="integration-desc">Add to ~/.gemini/settings.json:</p>
+                    <div class="code-inline">{
+  "mcpServers": {
+    "linkup-company-research": {
+      "httpUrl": "https://mcp.linkup.so/company-research"
+    }
+  }
+}</div>
+                </div>
+            </details>
+
+            <details class="integration-dropdown">
+                <summary>Warp</summary>
+                <div class="dropdown-content">
+                    <p class="integration-desc">Go to Settings > MCP Servers > Add MCP Server:</p>
+                    <div class="code-inline">{
+  "linkup-company-research": {
+    "url": "https://mcp.linkup.so/company-research"
+  }
+}</div>
+                </div>
+            </details>
+
+            <details class="integration-dropdown">
+                <summary>Kiro</summary>
+                <div class="dropdown-content">
+                    <p class="integration-desc">Add to ~/.kiro/settings/mcp.json:</p>
+                    <div class="code-inline">{
+  "mcpServers": {
+    "linkup-company-research": {
+      "url": "https://mcp.linkup.so/company-research"
+    }
+  }
+}</div>
+                </div>
+            </details>
+
+            <details class="integration-dropdown">
+                <summary>Roo Code</summary>
+                <div class="dropdown-content">
+                    <p class="integration-desc">Add to your Roo Code MCP config:</p>
+                    <div class="code-inline">{
+  "mcpServers": {
+    "linkup-company-research": {
+      "type": "streamable-http",
+      "url": "https://mcp.linkup.so/company-research"
+    }
+  }
+}</div>
+                </div>
+            </details>
+
+            <details class="integration-dropdown">
+                <summary>Other Clients</summary>
+                <div class="dropdown-content">
+                    <p class="integration-desc">For clients that support remote MCP:</p>
+                    <div class="code-inline">{
+  "mcpServers": {
+    "linkup-company-research": {
+      "url": "https://mcp.linkup.so/company-research"
+    }
+  }
+}</div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Example Prompts -->
+        <div class="section-header">
+            <span class="section-dot"></span>
+            <span class="section-label">Example Prompts</span>
+        </div>
+
+        <div class="prompts-card">
+            <div class="prompt-item">
+                <span class="prompt-number">1</span>
+                <div class="prompt-content">
+                    <p class="prompt-text">"Due diligence report on Stripe"</p>
+                    <p class="prompt-tools"><code>company_financials</code> <code>company_funding</code> <code>competitive_landscape</code> <code>company_risks</code></p>
+                </div>
+            </div>
+            <div class="prompt-item">
+                <span class="prompt-number">2</span>
+                <div class="prompt-content">
+                    <p class="prompt-text">"Notion's products, pricing, and enterprise clients"</p>
+                    <p class="prompt-tools"><code>company_products</code> <code>company_target_market</code> <code>company_clients</code></p>
+                </div>
+            </div>
+            <div class="prompt-item">
+                <span class="prompt-number">3</span>
+                <div class="prompt-content">
+                    <p class="prompt-text">"Anthropic leadership, culture, and recent news"</p>
+                    <p class="prompt-tools"><code>company_leadership</code> <code>company_culture</code> <code>company_technology</code> <code>company_news</code></p>
+                </div>
+            </div>
+            <div class="prompt-item">
+                <span class="prompt-number">4</span>
+                <div class="prompt-content">
+                    <p class="prompt-text">"Compare Databricks, Snowflake, and Scale AI"</p>
+                    <p class="prompt-tools"><code>company_market</code> <code>company_strategy</code> <code>competitive_landscape</code></p>
+                </div>
+            </div>
+            <div class="prompt-item">
+                <span class="prompt-number">5</span>
+                <div class="prompt-content">
+                    <p class="prompt-text">"OpenAI overview as structured JSON"</p>
+                    <p class="prompt-tools"><code>company_overview</code> <code>company_business_model</code> <code>company_partnerships</code> with <code>output_format="structured"</code></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <a href="https://docs.linkup.so" target="_blank">Linkup Docs</a> &middot;
+        <a href="mailto:support@linkup.so">Support</a>
+        <br><br>
+        Built with Linkup's Agentic Search API
+    </footer>
+</body>
+</html>

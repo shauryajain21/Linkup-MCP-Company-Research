@@ -924,6 +924,56 @@ Focus on factual ESG information from official sources and news."""
 
 
 # =============================================================================
+# 18. COMPREHENSIVE RESEARCH (Single-call for vague queries)
+# =============================================================================
+
+RESEARCH_COMPANY_PROMPT = """You are an expert business analyst providing a comprehensive research report on {company_name}.
+
+Execute a thorough multi-step research process:
+
+1. Find {company_name}'s official website and scrape their homepage and About page
+2. Search LinkedIn for company details (employee count, headquarters, industry)
+3. Search for recent funding rounds and valuation information
+4. Find their main products/services and pricing model
+5. Identify their main competitors and market position
+6. Search for recent news and developments
+
+Provide a comprehensive company profile covering:
+
+## Company Overview
+- Official company name
+- Website URL
+- Founded year and founders
+- Headquarters location
+- Employee count and growth trend
+- Company stage (seed/early/growth/mature/public)
+- One-paragraph description of what they do
+
+## Products & Business Model
+- Main products/services (brief description of each)
+- Business model (SaaS/marketplace/platform/services/etc.)
+- Target customers (B2B/B2C, company size, industries)
+- Pricing model (subscription/usage-based/freemium/enterprise)
+
+## Funding & Financials
+- Total funding raised
+- Latest funding round (type, amount, date, lead investors)
+- Latest valuation (if known)
+- Key investors
+
+## Competitive Position
+- Top 3-5 main competitors
+- Key differentiators
+- Market position (leader/challenger/niche)
+
+## Recent Activity
+- 2-3 most notable recent news items (product launches, partnerships, funding, etc.)
+
+Keep the response focused and actionable. Cite sources where possible.
+Do not speculate - only report factual information found during research."""
+
+
+# =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
 
@@ -947,6 +997,7 @@ def get_prompt(tool_name: str, **kwargs) -> str:
         "company_strategy": COMPANY_STRATEGY_PROMPT,
         "company_risks": COMPANY_RISKS_PROMPT,
         "company_esg": COMPANY_ESG_PROMPT,
+        "research_company": RESEARCH_COMPANY_PROMPT,
     }
 
     prompt_template = prompts.get(tool_name)

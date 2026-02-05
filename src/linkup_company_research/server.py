@@ -1,7 +1,7 @@
 """Linkup Company Research MCP Server.
 
 A comprehensive company research platform powered by Linkup's agentic search API.
-Provides 17 research tools with dual output format support (natural language or structured JSON).
+Provides 18 research tools with dual output format support (natural language or structured JSON).
 
 Tools:
 1. company_overview - Company identity, location, size, stage
@@ -21,6 +21,7 @@ Tools:
 15. company_strategy - Growth plans, M&A, IPO signals
 16. company_risks - Risk assessment across multiple dimensions
 17. company_esg - ESG initiatives, sustainability, reputation
+18. research_company - Comprehensive research (calls overview, funding, competitors in parallel)
 """
 
 import json
@@ -791,6 +792,66 @@ async def company_esg(
 
     data = await _search(prompt, depth="standard", params=params, schema=schema)
     return _format_response(data, params.output_format)
+
+
+# =============================================================================
+# 18. COMPREHENSIVE RESEARCH (Calls 3 tools in parallel)
+# =============================================================================
+
+
+@mcp.tool()
+async def research_company(
+    company_name: str,
+    max_results: int = 12,
+) -> str:
+    """Comprehensive company research using parallel tool calls.
+
+    Use this tool for vague queries like "research [company]" or "tell me about [company]".
+    Calls 3 specialized tools in parallel (overview, funding, competitors) and combines
+    the results into a complete company profile.
+
+    This is faster than Claude calling 5-6 tools sequentially for general research.
+
+    Args:
+        company_name: The name of the company to research
+        max_results: Maximum number of sources per tool (1-50)
+    """
+    import asyncio
+
+    # Run 3 specialized tools in parallel
+    overview_task = company_overview(company_name, max_results=max_results)
+    funding_task = company_funding(company_name, max_results=max_results)
+    competitive_task = competitive_landscape(company_name, max_results=max_results)
+
+    results = await asyncio.gather(
+        overview_task,
+        funding_task,
+        competitive_task,
+        return_exceptions=True,
+    )
+
+    # Combine results into a single response
+    sections = []
+
+    # Overview section
+    if not isinstance(results[0], Exception):
+        sections.append(f"## Company Overview\n\n{results[0]}")
+    else:
+        sections.append(f"## Company Overview\n\nUnable to fetch: {results[0]}")
+
+    # Funding section
+    if not isinstance(results[1], Exception):
+        sections.append(f"## Funding & Valuation\n\n{results[1]}")
+    else:
+        sections.append(f"## Funding & Valuation\n\nUnable to fetch: {results[1]}")
+
+    # Competitive section
+    if not isinstance(results[2], Exception):
+        sections.append(f"## Competitive Landscape\n\n{results[2]}")
+    else:
+        sections.append(f"## Competitive Landscape\n\nUnable to fetch: {results[2]}")
+
+    return f"# {company_name} - Company Research\n\n" + "\n\n---\n\n".join(sections)
 
 
 # =============================================================================

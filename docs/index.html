@@ -319,6 +319,55 @@
             color: var(--color-text);
         }
 
+        /* Tips */
+        .tips-card {
+            background: var(--color-bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .tip-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .tip-item:last-child {
+            border-bottom: none;
+        }
+
+        .tip-number {
+            width: 24px;
+            height: 24px;
+            background: var(--color-accent);
+            color: var(--color-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .tip-text {
+            font-size: 0.9375rem;
+            color: var(--color-text);
+            line-height: 1.5;
+        }
+
+        .tip-text code {
+            background: var(--color-bg);
+            padding: 0.125rem 0.375rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8125rem;
+            color: var(--color-primary);
+        }
+
         /* Footer */
         footer {
             text-align: center;
@@ -509,16 +558,6 @@
                 <div class="code-inline">claude mcp add --transport http linkup-company-research https://company-research.linkup.tools/sse?apiKey="YOUR-API-KEY"</div>
             </div>
 
-            <details class="integration-dropdown">
-                <summary>Claude Code (Local)</summary>
-                <div class="dropdown-content">
-                    <p class="integration-desc">Run the server locally using uvx:</p>
-                    <div class="code-inline">claude mcp add linkup-company-research -- uvx linkup-company-research-mcp</div>
-                    <p class="integration-desc" style="margin-top: 0.75rem;">Then set your API key as an environment variable:</p>
-                    <div class="code-inline">export LINKUP_API_KEY=YOUR-API-KEY</div>
-                </div>
-            </details>
-
             <div class="integration-item">
                 <div class="integration-title">Claude Desktop</div>
                 <p class="integration-desc">Go to Settings → Connectors → Add Custom Connector. Name: <strong>linkup-company-research</strong>, URL:</p>
@@ -682,6 +721,27 @@
             </div>
             <div class="prompt-item">
                 <p class="prompt-text">"Tesla's ESG initiatives and sustainability record"</p>
+            </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="section-header">
+            <span class="section-dot"></span>
+            <span class="section-label">Tips</span>
+        </div>
+
+        <div class="tips-card">
+            <div class="tip-item">
+                <span class="tip-number">1</span>
+                <p class="tip-text">Add "use linkup" to your prompt to ensure the LLM uses these tools instead of its default web search.</p>
+            </div>
+            <div class="tip-item">
+                <span class="tip-number">2</span>
+                <p class="tip-text">Reference specific tools like <code>company_financials</code> or <code>company_funding</code> when you need targeted data.</p>
+            </div>
+            <div class="tip-item">
+                <span class="tip-number">3</span>
+                <p class="tip-text">Combine with Claude Code to build automated company enrichment and research pipelines.</p>
             </div>
         </div>
     </main>

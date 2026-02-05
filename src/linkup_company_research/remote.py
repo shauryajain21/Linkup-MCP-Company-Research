@@ -109,7 +109,8 @@ def get_api_key_for_request(request) -> tuple[str, bool]:
     """Get API key to use. Returns (api_key, is_user_provided)."""
     user_key = extract_api_key(request)
 
-    if user_key and (user_key.startswith("lk-") or user_key.startswith("lk_")):
+    # Accept any non-empty API key from user
+    if user_key and len(user_key) > 10:
         return user_key, True
 
     return FALLBACK_API_KEY, False
